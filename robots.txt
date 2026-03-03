@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://lasseruttert.github.io/lasseruttert//sitemap.xml
+Sitemap: https://lasseruttert.github.io/sitemap.xml
