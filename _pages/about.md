@@ -1,6 +1,6 @@
 ---
 layout: about
-title: about
+title: About
 permalink: /
 subtitle: Research Assistant @ <a href='https://www.fkie.fraunhofer.de/'>Fraunhofer FKIE</a>. Computer Science @ <a href='https://www.uni-bonn.de/'>University of Bonn</a>.
 

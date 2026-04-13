@@ -1,7 +1,7 @@
 ---
 layout: page
 permalink: /publications/
-title: publications
+title: Publications
 description: My academic work, including my bachelor thesis.
 nav: true
 nav_order: 2

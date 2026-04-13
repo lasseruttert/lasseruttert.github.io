@@ -5,4 +5,4 @@ email: lasse.ruttert@example.com # your email address
 github_username: lasseruttert # your GitHub username
 linkedin_username: lasse-ruttert # your LinkedIn username
 cv_pdf: /assets/pdf/cv.pdf # path to your CV PDF file
-rss_icon: true # comment this line to hide the RSS icon
+# rss_icon: true

@@ -6,19 +6,19 @@
 
 :root {
   color-scheme: light;
-  --global-bg-color: #2b1d0e;
-  --global-code-bg-color: #3a2a18;
+  --global-bg-color: #1a1008;
+  --global-code-bg-color: #261a0c;
   --global-text-color: #e8dcc8;
   --global-text-color-light: #a89880;
   --global-theme-color: #e8366e;
   --global-hover-color: #e8366e;
   --global-hover-text-color: #ffffff;
-  --global-footer-bg-color: #1a1008;
+  --global-footer-bg-color: #0d0804;
   --global-footer-text-color: #a89880;
   --global-footer-link-color: #e8dcc8;
   --global-distill-app-color: #{v.$grey-color};
   --global-divider-color: rgba(255, 255, 255, 0.1);
-  --global-card-bg-color: #3a2a18;
+  --global-card-bg-color: #261a0c;
   --global-highlight-color: #{v.$red-color-dark};
   --global-back-to-top-bg-color: rgba(
     #{color.channel(#e8366e, "red", v.$space: rgb)},
@@ -27,7 +27,7 @@
     0.6
   );
   --global-back-to-top-text-color: #{v.$white-color};
-  --global-newsletter-bg-color: #3a2a18;
+  --global-newsletter-bg-color: #261a0c;
   --global-newsletter-text-color: #e8dcc8;
 
   --global-tip-block: #42b983;
