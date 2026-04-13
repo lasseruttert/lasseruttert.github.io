@@ -165,6 +165,31 @@ ul.task-list input[type="checkbox"] {
 
 // Repositories
 
+.repo-list {
+  .repo-item {
+    margin-bottom: 1.5rem;
+
+    h4 {
+      margin-bottom: 0.25rem;
+
+      a {
+        color: var(--global-theme-color);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    p {
+      margin: 0;
+      color: var(--global-text-color);
+      font-size: 0.95rem;
+    }
+  }
+}
+
 @media (min-width: 768px) {
   .repo {
     max-width: 50%;
