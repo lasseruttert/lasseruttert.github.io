@@ -1,6 +1,11 @@
 github_users:
-  - lasseruttert
 
 repo_description_lines_max: 2
 
-github_repos: []
+github_repos:
+  - lasseruttert/rl-memetic-pdptw
+  - lasseruttert/PDPBench
+  - lasseruttert/clef_2026_touche
+  - lasseruttert/TensorTonic-Solutions
+  - lasseruttert/kaggle
+  - lasseruttert/ged_on_molecular_graphs

@@ -1,10 +1,10 @@
 cv:
   name: Lasse Ruttert
-  label: Computer Science Student
+  label: Computer Science Student & Research Assistant
   email: lasse.ruttert@example.com
   location: Bonn, Germany
   image: ""
-  summary: Computer Science student at the University of Bonn. Research Assistant at Fraunhofer FKIE. Interested in Reinforcement Learning, Natural Language Processing, and Agents.
+  summary: Computer Science student at the University of Bonn and Research Assistant at Fraunhofer FKIE, interested in Reinforcement Learning and Natural Language Processing.
 
   social_networks:
     - network: GitHub
@@ -18,30 +18,46 @@ cv:
 
   sections:
     Education:
-      - institution: University of Bonn
+      - institution: Rheinische Friedrich-Wilhelms-Universität Bonn
+        location: Bonn, Germany
+        url: https://www.uni-bonn.de/
+        area: Computer Science
+        studyType: Master of Science
+        start_date: 2026-04
+        end_date: present
+        highlights:
+          - Focus on Reinforcement Learning and NLP
+
+      - institution: Rheinische Friedrich-Wilhelms-Universität Bonn
         location: Bonn, Germany
         url: https://www.uni-bonn.de/
         area: Computer Science
         studyType: Bachelor of Science
-        start_date: 2022
-        end_date: 2025
+        start_date: 2022-10
+        end_date: 2026-03
         highlights:
-          - Focus on ML and AI
+          - "Grade: 1.2"
+          - Developed a Memetic Algorithm for the Pickup and Delivery Problem with Time Windows, using an agent trained via Reinforcement Learning to intelligently select operators for the local search
 
     Experience:
       - company: Fraunhofer FKIE
-        position: Research Assistant
-        location: Bonn, Germany
-        start_date: 2023
+        position: Studentische Hilfskraft
+        location: Wachtberg, Germany
+        start_date: 2025-04
+        end_date: present
         url: https://www.fkie.fraunhofer.de/
         highlights:
-          - Research and development
+          - Researching graph reinforcement learning for online combinatorial optimization problems
+          - Designing problem-specific heuristic baselines and developing RL-based solution approaches
 
     Skills:
-      - name: Programming
-        level: Intermediate
+      - name: Programming & Tools
         icon: fa-solid fa-hashtag
-        keywords: "Python, Machine Learning, Deep Learning"
+        keywords: "Python, PyTorch, Git"
+
+      - name: Research
+        icon: fa-solid fa-flask
+        keywords: "Reinforcement Learning, NLP, Graph Theory, Combinatorial Optimization"
 
     Languages:
       - name: German

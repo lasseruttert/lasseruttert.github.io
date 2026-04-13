@@ -8,10 +8,12 @@ div.container-link-button {
 
 table.table-cv {
   background-color: transparent !important;
+  color: var(--global-text-color) !important;
 
   td,
   th {
     padding: 1px;
+    color: var(--global-text-color) !important;
   }
 }
 
@@ -30,6 +32,10 @@ a.btncv {
   vertical-align: middle;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.font-weight-light {
+  color: var(--global-text-color) !important;
 }
 
 a.btncv:hover {
