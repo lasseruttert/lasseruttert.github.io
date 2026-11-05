@@ -496,3 +496,8 @@ body.has-bg footer.fixed-bottom {
   color: var(--global-theme-color);
   margin-bottom: 0.4rem;
 }
+
+// the theme animates every link; blocks are scaled by the background script instead
+body.bg-live .slot {
+  transition: none !important;
+}

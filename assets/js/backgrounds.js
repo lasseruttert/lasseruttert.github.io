@@ -170,7 +170,31 @@
     blue: "#3e5470",
     pink: "#b0574c",
     ink: "#120909",
+    panel: "#6c1a1c",
+    lozenge: "#8a2b24",
   };
+  var RUG_PALETTES = [
+    {},
+    // indigo ground with madder and ivory
+    { red: "#1b2140", red2: "#7a1d20", burgundy: "#3a0c0f", panel: "#262d52", lozenge: "#5c1416", navy: "#0f1224", rose: "#b0574c" },
+    // camel ground with indigo
+    { red: "#5a3a22", red2: "#7a1d20", burgundy: "#2a1a10", panel: "#6b4629", lozenge: "#1f2a4d", navy: "#161a2c", rose: "#c0705a" },
+  ];
+  function withPalette(i, fn) {
+    var saved = {};
+    var pal = RUG_PALETTES[i % RUG_PALETTES.length];
+    Object.keys(pal).forEach(function (k) {
+      saved[k] = RUG[k];
+      RUG[k] = pal[k];
+    });
+    try {
+      fn();
+    } finally {
+      Object.keys(saved).forEach(function (k) {
+        RUG[k] = saved[k];
+      });
+    }
+  }
 
   function petalPath(ctx, len, wid) {
     ctx.beginPath();
@@ -717,7 +741,7 @@
       ctx.fillStyle = RUG.ink;
       roundRect(ctx, fx + fw * 0.06 - 5, fy + fh * 0.025 - 5, fw * 0.88 + 10, fh * 0.95 + 10, 70);
       ctx.fill();
-      ctx.fillStyle = "#6c1a1c";
+      ctx.fillStyle = RUG.panel;
       roundRect(ctx, fx + fw * 0.06, fy + fh * 0.025, fw * 0.88, fh * 0.95, 64);
       ctx.fill();
       // rings first, then the spine medallions sized to the space left between them
@@ -758,7 +782,7 @@
               ctx.fillStyle = RUG.ink;
               lobed(ctx, cx, by, lrx, lry, 18, 0.07);
               ctx.fill();
-              ctx.fillStyle = "#8a2b24";
+              ctx.fillStyle = RUG.lozenge;
               lobed(ctx, cx, by, lrx * 0.97, lry * 0.96, 18, 0.07);
               ctx.fill();
               // a rose heart with an ink edge inside the medallion
@@ -1231,7 +1255,7 @@
     });
   }
 
-  function drawRugWorld(ctx, W, H, rects, boxes) {
+  function drawOneRug(ctx, W, H, rects, boxes) {
     boxes = boxes || [];
     function free(x, y, r) {
       for (var i = 0; i < boxes.length; i++) {
@@ -1488,6 +1512,53 @@
     ctx.stroke();
     rosette(ctx, cx, cy, Math.min(rx, ry) * 0.15, 12, RUG.ivory, RUG.pink, RUG.gold);
     ctx.restore();
+  }
+
+  // up to RUG_SPLIT wide the page is one rug; wider, two columns of rugs on a wooden floor,
+  // the right column shifted by half a rug so the rugs zigzag
+  var RUG_SPLIT = 1100;
+  function rugColumns(W) {
+    var split = Math.round(W / 2);
+    return [
+      { x: 0, w: split, off: 0 },
+      { x: split, w: W - split, off: 0.5 },
+    ];
+  }
+  function drawRugWorld(ctx, W, H, rects, boxes) {
+    if (W < RUG_SPLIT) return drawOneRug(ctx, W, H, rects, boxes);
+    // floorboards
+    ctx.fillStyle = "#1e130d";
+    ctx.fillRect(0, 0, W, H);
+    for (var py = 0; py < H; py += 46) {
+      ctx.fillStyle = R() < 0.5 ? "#24170f" : "#1a100a";
+      ctx.fillRect(0, py, W, 44);
+      ctx.fillStyle = "#0e0806";
+      ctx.fillRect(0, py + 44, W, 2);
+      for (var px = rnd(0, 300); px < W; px += rnd(220, 420)) ctx.fillRect(px, py, 2, 44);
+    }
+    var gap = 0;
+    rugColumns(W).forEach(function (c, ci) {
+      var target = Math.round(clamp(c.w * 1.6, 820, 1500));
+      // rugs touch edge to edge; the right column is shifted by half a rug so they zigzag
+      var k = 0;
+      for (var y = -c.off * target; y < H; k++) {
+        var rh = target;
+        var yy = Math.round(y);
+        y += rh + gap;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(c.x, yy, c.w, rh);
+        ctx.clip();
+        ctx.translate(c.x, yy);
+        var local = (boxes || []).map(function (b) {
+          return [b[0] - c.x, b[1] - yy, b[2] - c.x, b[3] - yy];
+        });
+        withPalette(ci + k * 2, function () {
+          drawOneRug(ctx, c.w, rh, [], local);
+        });
+        ctx.restore();
+      }
+    });
   }
 
   // paisley / boteh: teardrop with a curled tip and nested fills
@@ -2182,7 +2253,7 @@
     slotEls.forEach(function (e, i) {
       var chars = e.textContent.replace(/\s+/g, " ").trim().length;
       var lo = clamp(Math.ceil(Math.sqrt(chars * 110) / u), minW, K);
-      if (e.classList.contains("slot-hero")) lo = Math.max(lo, Math.ceil(K * 0.55));
+      if (i === 0) lo = Math.max(lo, Math.min(K, Math.ceil(K * 0.72)));
       var hi = Math.min(K, lo + (chars > 250 ? 3 : 2));
       e.style.position = "absolute";
       e.style.margin = "0";
@@ -2203,7 +2274,8 @@
       }
       e.style.width = w * u + "px";
       // usually start below the previous block; now and then sit beside it
-      var r = i === 0 ? 0 : R() < 0.22 ? cursor : prevBottom + (R() < 0.4 ? 1 : 0);
+      var besideChance = w <= K * 0.5 ? 0.6 : 0.22;
+      var r = i === 0 ? 0 : R() < besideChance ? cursor : prevBottom + (R() < 0.4 ? 1 : 0);
       var c = 0;
       for (var guard = 0; guard < 400; guard++, r++) {
         var cands = [];
@@ -2216,7 +2288,8 @@
       }
       for (var y = r; y < r + h; y++) {
         var row = rowOcc(y);
-        for (var x = c; x < c + w; x++) row[x] = 1;
+        // the first block claims its whole row band, so nothing sits beside it
+        for (var x = i === 0 ? 0 : c; x < (i === 0 ? K : c + w); x++) row[x] = 1;
       }
       cursor = r;
       prevBottom = r + h;
@@ -2680,6 +2753,14 @@ void main(){
     texFromCanvas("uText", textCanvas, false);
   }
 
+  function rugTextColumn(u) {
+    if (css.w < RUG_SPLIT) return [u, 3, 2, 2, 690, true, Math.round(clamp(css.w * 0.065, 40, 104) + 64)];
+    // the text runs across the whole screen, starting just inside the left rug's border
+    var c = rugColumns(css.w)[0];
+    var B = clamp(c.w * 0.075, 46, 116);
+    return [u, 3, 2, 2, 690, true, Math.round(c.x + B + 64)];
+  }
+
   var unitSize = 0;
   function gridUnit(W) {
     if (kind === "glass") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1400) / 8.5, 72, 140));
@@ -2729,7 +2810,7 @@ void main(){
     var W = css.w;
     var u = unitSize;
     R = mulberry32({ glass: 7, rug: 11, tiles: 23 }[kind] + 101);
-    var lay = kind === "rug" ? snapSlots(u, 3, 2, 2, 690, true, Math.round(clamp(css.w * 0.065, 40, 104) + 64)) : scatterSlots(u, 1240);
+    var lay = kind === "rug" ? snapSlots.apply(null, rugTextColumn(u)) : scatterSlots(u, 1240);
     worldRects = lay.rects;
     if (!gl) return;
     sizeWindow(lay.docH);
