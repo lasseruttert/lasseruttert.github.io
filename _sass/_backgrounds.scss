@@ -562,3 +562,61 @@ body.bg-pearl.bg-live .slot {
   color: var(--global-text-color);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
+
+/* ---------------------------------------------------------------- keycaps */
+body.bg-keys {
+  --global-bg-color: #24231f;
+  --global-theme-color: #e3c34a;
+  --global-hover-color: #f2d870;
+  --global-text-color: #f0ece2;
+  --global-text-color-light: #c9c3b4;
+}
+body.bg-keys.bg-live .slot {
+  --slot-pad: calc(16px + 0.8rem) calc(18px + 0.8rem) calc(24px + 0.8rem);
+  --global-text-color: #34332e;
+  --global-text-color-light: #5d5a50;
+  --global-theme-color: #9a5b12;
+  --global-hover-color: #6d3f0a;
+  color: var(--global-text-color);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* ---------------------------------------------------------------- machines */
+body.bg-retro {
+  --global-bg-color: #1b1a17;
+  --global-theme-color: #7dff9a;
+  --global-hover-color: #c6ffd2;
+  --global-text-color: #e6e0cf;
+  --global-text-color-light: #bdb6a3;
+}
+body.bg-retro.bg-live .slot {
+  --slot-pad: calc(34px + 0.8rem);
+  --global-text-color: #8dffa8;
+  --global-text-color-light: #5fd27c;
+  --global-theme-color: #c6ffd2;
+  --global-hover-color: #ffffff;
+  color: var(--global-text-color);
+  text-shadow:
+    0 0 4px rgba(80, 255, 130, 0.65),
+    0 0 12px rgba(80, 255, 130, 0.3);
+}
+@media (prefers-reduced-motion: no-preference) {
+  body.bg-retro.bg-live .slot-inner {
+    animation: phosphor-flicker 3.2s infinite steps(1);
+  }
+}
+@keyframes phosphor-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  47% {
+    opacity: 0.93;
+  }
+  48% {
+    opacity: 1;
+  }
+  83% {
+    opacity: 0.96;
+  }
+}

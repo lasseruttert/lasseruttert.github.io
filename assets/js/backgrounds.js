@@ -2185,6 +2185,296 @@
     return out;
   }
 
+  // ============================================================ KEYCAPS and MACHINES
+  // Both are painted once on the CPU into a page-sized colour map (half resolution,
+  // so they come out pixelated like the rest). Machines also paint a mask of the
+  // screens and a blurred glow map for the shader's flicker and bloom.
+  var KEY_COLS = ["#e9e4d8", "#e4dece", "#dcd5c2", "#d2cab4", "#cdc9bf", "#c5c0b2", "#e6e2d6", "#bdb9ae"];
+  var KEY_LEGENDS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    .split("")
+    .concat([
+      "Esc",
+      "Tab",
+      "Ctrl",
+      "Alt",
+      "Del",
+      "Ins",
+      "Home",
+      "End",
+      "PgUp",
+      "PgDn",
+      "F1",
+      "F2",
+      "F5",
+      "F8",
+      "F11",
+      "F12",
+      "←",
+      "↑",
+      "→",
+      "↓",
+      "?",
+      "/",
+      ";",
+      "[",
+      "]",
+      "*",
+      "+",
+      "-",
+    ]);
+  var KEY_PAIRS = [
+    ["!", "1"],
+    ["@", "2"],
+    ["#", "3"],
+    ["$", "4"],
+    ["%", "5"],
+    ["^", "6"],
+    ["&", "7"],
+    ["*", "8"],
+    ["(", "9"],
+    [")", "0"],
+    [":", ";"],
+    ["?", "/"],
+    [">", "."],
+    ["<", ","],
+  ];
+  var KEY_WIDE = ["Enter", "Shift", "Backspace", "Caps Lock", "Space", "Print Screen", "Num Lock", "Tab", "Ctrl", "Alt Gr", "Insert", "Scroll Lock"];
+
+  function keycap(g, x, y, w, h, col, legend, small) {
+    var m = 3;
+    // skirt: the sloped sides, darker towards the bottom right
+    var skirt = g.createLinearGradient(x, y, x + w * 0.3, y + h);
+    skirt.addColorStop(0, fshade(col, 0.92));
+    skirt.addColorStop(1, fshade(col, 0.66));
+    g.fillStyle = "rgba(0,0,0,0.5)";
+    roundRect(g, x + m + 1, y + m + 2, w - 2 * m, h - 2 * m, 7);
+    g.fill();
+    g.fillStyle = skirt;
+    roundRect(g, x + m, y + m, w - 2 * m, h - 2 * m, 7);
+    g.fill();
+    // top face, set back from the bottom edge so the front slope shows
+    var tx = x + m + 5,
+      ty = y + m + 3,
+      tw = w - 2 * m - 10,
+      th = h - 2 * m - 12;
+    var dish = g.createRadialGradient(tx + tw * 0.5, ty + th * 0.55, 2, tx + tw * 0.5, ty + th * 0.5, Math.max(tw, th) * 0.75);
+    dish.addColorStop(0, fshade(col, 0.95));
+    dish.addColorStop(1, fshade(col, 1.06));
+    g.fillStyle = dish;
+    roundRect(g, tx, ty, tw, th, 5);
+    g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.35)";
+    g.lineWidth = 1;
+    roundRect(g, tx + 0.5, ty + 0.5, tw - 1, th - 1, 5);
+    g.stroke();
+    // grime and yellowing
+    for (var i = 0; i < 5; i++) {
+      if (R() < 0.45) continue;
+      var gx = tx + rnd(0, tw),
+        gy = ty + rnd(0, th),
+        gr = rnd(3, 12);
+      var gg = g.createRadialGradient(gx, gy, 0, gx, gy, gr);
+      gg.addColorStop(0, "rgba(110,85,50," + rnd(0.08, 0.28) + ")");
+      gg.addColorStop(1, "rgba(110,85,50,0)");
+      g.fillStyle = gg;
+      g.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);
+    }
+    if (!legend) return;
+    g.fillStyle = col === "#e3c34a" || col === "#2a9d9a" ? "#1f1f1c" : "#3a3a35";
+    g.textBaseline = "top";
+    if (Array.isArray(legend)) {
+      g.font = "600 13px 'Pixelify Sans', monospace";
+      g.fillText(legend[0], tx + 5, ty + 3);
+      g.fillText(legend[1], tx + 5, ty + th - 17);
+    } else if (legend.length > 2 || small) {
+      g.font = "500 11px 'Pixelify Sans', monospace";
+      g.fillText(legend, tx + 5, ty + 4);
+    } else {
+      g.font = "600 17px 'Pixelify Sans', monospace";
+      g.fillText(legend, tx + 6, ty + 3);
+    }
+  }
+
+  function paintKeys(g, blocks, W, H) {
+    g.fillStyle = "#24231f";
+    g.fillRect(0, 0, W, H);
+    blocks.forEach(function (b) {
+      if (b.plate) {
+        keycap(g, b.x, b.y, b.w, b.h, pick(["#e9e4d8", "#e4dece", "#dcd5c2"]), null);
+        return;
+      }
+      var col = R() < 0.05 ? pick(["#e3c34a", "#2a9d9a", "#8fa3b8"]) : pick(KEY_COLS);
+      var legend;
+      if (b.cw >= 2) legend = pick(KEY_WIDE);
+      else if (b.ch >= 2) legend = pick(["Enter", "+", "Ins"]);
+      else legend = R() < 0.3 ? pick(KEY_PAIRS) : pick(KEY_LEGENDS);
+      keycap(g, b.x, b.y, b.w, b.h, col, legend);
+    });
+  }
+
+  var BEIGE = ["#d8d0b8", "#cfc6ab", "#e0d9c4", "#c4bba0", "#d2cbb6", "#bdb6a3"];
+  var SCREEN = [
+    ["#3a6dff", 0.4],
+    ["#4f9dff", 0.12],
+    ["#38f06a", 0.3],
+    ["#ffb53a", 0.05],
+    ["#101410", 0.13],
+  ];
+  function pickScreen() {
+    var t = R(),
+      a = 0;
+    for (var i = 0; i < SCREEN.length; i++) {
+      a += SCREEN[i][1];
+      if (t < a) return SCREEN[i][0];
+    }
+    return SCREEN[0][0];
+  }
+  function beigeBox(g, x, y, w, h, col, r) {
+    var gr = g.createLinearGradient(x, y, x, y + h);
+    gr.addColorStop(0, fshade(col, 1.06));
+    gr.addColorStop(1, fshade(col, 0.8));
+    g.fillStyle = "rgba(0,0,0,0.45)";
+    roundRect(g, x + 2, y + 3, w, h, r);
+    g.fill();
+    g.fillStyle = gr;
+    roundRect(g, x, y, w, h, r);
+    g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.35)";
+    g.lineWidth = 1;
+    roundRect(g, x + 0.5, y + 0.5, w - 1, h - 1, r);
+    g.stroke();
+    // a little grime
+    for (var i = 0; i < 3; i++) {
+      var gx = x + rnd(0, w),
+        gy = y + rnd(0, h),
+        gr2 = rnd(6, 20);
+      var gg = g.createRadialGradient(gx, gy, 0, gx, gy, gr2);
+      gg.addColorStop(0, "rgba(90,75,50," + rnd(0.05, 0.15) + ")");
+      gg.addColorStop(1, "rgba(90,75,50,0)");
+      g.fillStyle = gg;
+      g.fillRect(gx - gr2, gy - gr2, gr2 * 2, gr2 * 2);
+    }
+  }
+  function monitor(g, mk, gl2, x, y, w, h, screen, plate) {
+    var col = pick(BEIGE);
+    var standH = plate ? 0 : Math.min(h * 0.12, 18);
+    beigeBox(g, x + 3, y + 3, w - 6, h - 6 - standH, col, 8);
+    if (standH) {
+      g.fillStyle = fshade(col, 0.82);
+      g.fillRect(x + w * 0.3, y + h - standH - 4, w * 0.4, standH);
+    }
+    var bz = plate ? 26 : Math.max(8, Math.min(w, h) * 0.13);
+    var sx = x + 3 + bz,
+      sy = y + 3 + bz * 0.8,
+      sw = w - 6 - 2 * bz,
+      sh = h - 6 - standH - bz * 1.8;
+    // recessed bezel
+    g.fillStyle = fshade(col, 0.7);
+    roundRect(g, sx - 4, sy - 4, sw + 8, sh + 8, 10);
+    g.fill();
+    // the tube: rounded, darker in the corners, a glare at the top left
+    g.fillStyle = screen;
+    roundRect(g, sx, sy, sw, sh, 12);
+    g.fill();
+    var vg = g.createRadialGradient(sx + sw / 2, sy + sh / 2, Math.min(sw, sh) * 0.2, sx + sw / 2, sy + sh / 2, Math.max(sw, sh) * 0.72);
+    vg.addColorStop(0, "rgba(255,255,255,0.12)");
+    vg.addColorStop(1, "rgba(0,0,0,0.55)");
+    g.fillStyle = vg;
+    roundRect(g, sx, sy, sw, sh, 12);
+    g.fill();
+    g.fillStyle = "rgba(255,255,255,0.18)";
+    g.beginPath();
+    g.ellipse(sx + sw * 0.28, sy + sh * 0.2, sw * 0.22, sh * 0.08, -0.3, 0, TAU);
+    g.fill();
+    mk.fillStyle = "#fff";
+    roundRect(mk, sx, sy, sw, sh, 12);
+    mk.fill();
+    if (screen !== "#101410") {
+      // soft light spilling from the tube; screens add up where they are close
+      var gcx = sx + sw / 2,
+        gcy = sy + sh / 2,
+        gr3 = Math.max(sw, sh) * 1.05;
+      var rg = gl2.createRadialGradient(gcx, gcy, Math.min(sw, sh) * 0.25, gcx, gcy, gr3);
+      var n2 = parseInt(screen.slice(1), 16);
+      var rgb = ((n2 >> 16) & 255) + "," + ((n2 >> 8) & 255) + "," + (n2 & 255);
+      rg.addColorStop(0, "rgba(" + rgb + "," + (plate ? 0.15 : 0.4) + ")");
+      rg.addColorStop(1, "rgba(" + rgb + ",0)");
+      gl2.save();
+      gl2.globalCompositeOperation = "lighter";
+      gl2.fillStyle = rg;
+      gl2.fillRect(gcx - gr3, gcy - gr3, gr3 * 2, gr3 * 2);
+      gl2.restore();
+    }
+    // badge, power button and LED under the screen
+    if (!plate) {
+      var by = sy + sh + bz * 0.35;
+      g.fillStyle = fshade(col, 0.7);
+      g.fillRect(sx, by, Math.min(26, sw * 0.25), 3);
+      g.beginPath();
+      g.arc(sx + sw - 6, by + 2, 3, 0, TAU);
+      g.fill();
+      g.fillStyle = screen === "#101410" ? "#5a3a1a" : "#6cff7a";
+      g.fillRect(sx + sw - 16, by + 1, 3, 3);
+    }
+  }
+  function tower(g, x, y, w, h) {
+    var col = pick(BEIGE);
+    beigeBox(g, x + 3, y + 3, w - 6, h - 6, col, 5);
+    var bays = Math.max(2, Math.floor(h / 30));
+    for (var i = 0; i < bays; i++) {
+      var yy = y + 10 + i * 13;
+      if (yy > y + h * 0.5) break;
+      g.fillStyle = fshade(col, 0.72);
+      g.fillRect(x + 10, yy, w - 20, 9);
+      g.fillStyle = "#2a2722";
+      g.fillRect(x + 14, yy + 4, w * 0.4, 2);
+    }
+    g.fillStyle = fshade(col, 0.7);
+    for (var v = y + h * 0.62; v < y + h - 12; v += 5) g.fillRect(x + 12, v, w - 24, 2);
+    g.beginPath();
+    g.arc(x + w / 2, y + h * 0.56, 5, 0, TAU);
+    g.fill();
+    g.fillStyle = "#6cff7a";
+    g.fillRect(x + w - 16, y + h * 0.56 - 1, 3, 3);
+  }
+  function desktopCase(g, x, y, w, h) {
+    var col = pick(BEIGE);
+    beigeBox(g, x + 3, y + 3, w - 6, h - 6, col, 4);
+    g.fillStyle = fshade(col, 0.7);
+    g.fillRect(x + w * 0.08, y + h * 0.35, w * 0.22, h * 0.14);
+    g.fillRect(x + w * 0.08, y + h * 0.6, w * 0.22, h * 0.1);
+    g.fillStyle = "#2a2722";
+    g.fillRect(x + w * 0.1, y + h * 0.4, w * 0.18, 2);
+    g.fillStyle = fshade(col, 0.72);
+    for (var v = x + w * 0.45; v < x + w * 0.85; v += 6) g.fillRect(v, y + h * 0.3, 2, h * 0.45);
+    g.fillStyle = "#ffb53a";
+    g.fillRect(x + w - 18, y + h * 0.5, 4, 3);
+  }
+  function retroKeyboard(g, x, y, w, h) {
+    var col = pick(BEIGE);
+    beigeBox(g, x + 3, y + h * 0.2, w - 6, h * 0.7, col, 4);
+    g.fillStyle = fshade(col, 1.05);
+    for (var ky = y + h * 0.28; ky < y + h * 0.82; ky += 7)
+      for (var kx = x + 8; kx < x + w - 10; kx += 8) {
+        g.fillStyle = fshade(col, R() < 0.1 ? 0.8 : 1.04);
+        g.fillRect(kx, ky, 6, 5);
+      }
+  }
+  function paintRetro(g, mk, gl2, blocks, W, H) {
+    g.fillStyle = "#1b1a17";
+    g.fillRect(0, 0, W, H);
+    mk.fillStyle = "#000";
+    mk.fillRect(0, 0, W, H);
+    blocks.forEach(function (b) {
+      if (b.plate) return monitor(g, mk, gl2, b.x, b.y, b.w, b.h, "#071a0c", true);
+      var a = b.cw / b.ch;
+      if (b.cw >= 2 && b.ch >= 2 && a <= 1.6 && a >= 0.9) monitor(g, mk, gl2, b.x, b.y, b.w, b.h, pickScreen(), false);
+      else if (b.ch > b.cw) tower(g, b.x, b.y, b.w, b.h);
+      else if (b.cw >= 4 && R() < 0.5) retroKeyboard(g, b.x, b.y, b.w, b.h);
+      else desktopCase(g, b.x, b.y, b.w, b.h);
+    });
+  }
+
   // ============================================================ maps for the shaders
   function h2(x, y) {
     var n = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263)) | 0;
@@ -2548,7 +2838,7 @@
         }
       }
     });
-    return { data: data, cols: cols, rows: rows, gx0: gx0, gy0: gy0 };
+    return { data: data, cols: cols, rows: rows, gx0: gx0, gy0: gy0, blocks: blocks };
   }
 
   function packBlocks(used, cols, rows, blocks, shapes, metaFn) {
@@ -2885,6 +3175,34 @@ void main(){
   outColor=vec4(col*vig(p),1.);
 }`;
 
+  // painted worlds (keycaps, machines): colour map + hover lift; machines add
+  // CRT scanlines, flicker, a rolling bar and screen glow
+  var FS_PAINT =
+    COMMON +
+    `
+uniform sampler2D uAlb;uniform sampler2D uMask;uniform sampler2D uGlow;uniform vec2 uAlbSize;uniform float uAlbScale;uniform float uMode;
+void main(){
+  vec2 p=P();vec2 w=p+vec2(0.,uTop);
+  float lift,hs;w=hoverWarp(w,lift,hs);
+  vec2 uv=w*uAlbScale/uAlbSize;
+  vec3 col=texture(uAlb,uv).rgb;
+  if(uMode>.5){
+    float m=texture(uMask,uv).r;
+    // each screen flickers on its own beat
+    vec2 cid=floor(w/vec2(150.,130.));
+    float ph=hash(cid)*6.2832;
+    float t=uTime;
+    float fl=.9+.05*sin(t*53.+ph)+.05*hash(vec2(floor(t*18.+ph),cid.x));
+    float scan=.78+.22*sin(w.y*2.1);
+    float roll=smoothstep(.0,.06,fract(w.y/420.-t*.12+ph))*(1.-smoothstep(.06,.14,fract(w.y/420.-t*.12+ph)));
+    col=mix(col,col*fl*scan+col*roll*.25,m);
+    vec3 glow=texture(uGlow,uv).rgb;
+    col+=glow*(.32*fl)*(1.-m*.7);
+  }
+  col*=hs*(1.+.06*lift);
+  outColor=vec4(col*vig(p),1.);
+}`;
+
   // ============================================================ driver
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var gl = null,
@@ -3078,6 +3396,8 @@ void main(){
   function gridUnit(W) {
     if (kind === "glass") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1400) / 8.5, 72, 140));
     if (kind === "tiles") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 11, 78, 136));
+    if (kind === "keys") return Math.round(W < 576 ? clamp(W / 8, 40, 54) : clamp(Math.min(W, 1600) / 24, 48, 62));
+    if (kind === "retro") return Math.round(W < 576 ? clamp(W / 7, 44, 60) : clamp(Math.min(W, 1600) / 20, 56, 76));
     if (kind === "pearl") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 11, 76, 124));
     if (kind === "amber") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 12, 72, 112));
     if (kind === "fabric") return Math.round((W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 12, 72, 114)) / 3) * 3;
@@ -3126,7 +3446,7 @@ void main(){
   function buildWorld() {
     var W = css.w;
     var u = unitSize;
-    R = mulberry32({ glass: 7, rug: 11, tiles: 23, amber: 31, fabric: 41, pearl: 53 }[kind] + 101);
+    R = mulberry32({ glass: 7, rug: 11, tiles: 23, amber: 31, fabric: 41, pearl: 53, keys: 61, retro: 71 }[kind] + 101);
     var lay = kind === "rug" ? snapSlots.apply(null, rugTextColumn(u)) : scatterSlots(u, 1240);
     worldRects = lay.rects;
     if (!gl) return;
@@ -3176,6 +3496,65 @@ void main(){
       return;
     }
     var idx;
+    if (kind === "keys" || kind === "retro") {
+      var shapes =
+        kind === "keys"
+          ? [
+              [1, 1, 10],
+              [2, 1, 3],
+              [3, 1, 1],
+              [1, 2, 1],
+              [4, 1, 0.5],
+            ]
+          : [
+              [3, 3, 2],
+              [2, 2, 2.5],
+              [4, 3, 1],
+              [2, 3, 1.5],
+              [1, 2, 1],
+              [3, 1, 1.5],
+              [4, 1, 1],
+              [2, 1, 1],
+            ];
+      var pidx = buildIndex(W, lay.docH, u, lay, function (used, cols, rows, blocks) {
+        blocks.forEach(function (b) {
+          b.meta = [7, 0, 0, 0];
+        });
+        packBlocks(used, cols, rows, blocks, shapes, function () {
+          return [1, 0, 0, 0];
+        });
+      });
+      var list = pidx.blocks.map(function (b) {
+        return { x: pidx.gx0 + b.c * u, y: pidx.gy0 + b.r * u, w: b.w * u, h: b.h * u, cw: b.w, ch: b.h, plate: !!b.plate };
+      });
+      var sc = 0.5;
+      var maxTp = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      var pw = Math.ceil(W * sc),
+        ph = Math.min(maxTp, Math.ceil(lay.docH * sc));
+      var ca = makeCanvas(pw, ph),
+        cm = makeCanvas(pw, ph),
+        cg = makeCanvas(pw, ph);
+      var ga = ca.getContext("2d"),
+        gm = cm.getContext("2d"),
+        gg = cg.getContext("2d");
+      [ga, gm, gg].forEach(function (c2) {
+        c2.scale(sc, sc);
+      });
+      if (kind === "keys") paintKeys(ga, list, W, lay.docH);
+      else paintRetro(ga, gm, gg, list, W, lay.docH);
+      texFromCanvas("uAlb", ca, false);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      texFromCanvas("uMask", cm, false);
+      texFromCanvas("uGlow", cg, false);
+      u2("uAlbSize", pw, ph);
+      u1("uAlbScale", sc);
+      u1("uMode", kind === "retro" ? 1 : 0);
+      u1("uHovInset", 3);
+      u1("uHovR", 7);
+      ensureWindow();
+      return;
+    }
     if (kind === "pearl") {
       idx = buildIndex(W, lay.docH, u, lay, function (used, cols, rows, blocks) {
         blocks.forEach(function (b) {
@@ -3326,7 +3705,7 @@ void main(){
       m.hover += (m.th - m.hover) * 0.08;
       moving = Math.abs(m.tx - m.x) > 0.3 || Math.abs(m.ty - m.y) > 0.3 || Math.abs(m.th - m.hover) > 0.005;
     }
-    var animated = !reduceMotion && (kind === "glass" || kind === "amber");
+    var animated = !reduceMotion && (kind === "glass" || kind === "amber" || kind === "retro");
     if (!moving && !scrolled && animated && ts - last < 33) {
       kick();
       return;
@@ -3360,7 +3739,15 @@ void main(){
           prog,
           compile(
             gl.FRAGMENT_SHADER,
-            kind === "glass" || kind === "amber" ? FS_GLASS : kind === "rug" || kind === "fabric" ? FS_RUG : kind === "pearl" ? FS_PEARL : FS_TILES
+            kind === "glass" || kind === "amber"
+              ? FS_GLASS
+              : kind === "rug" || kind === "fabric"
+                ? FS_RUG
+                : kind === "pearl"
+                  ? FS_PEARL
+                  : kind === "keys" || kind === "retro"
+                    ? FS_PAINT
+                    : FS_TILES
           )
         );
         gl.linkProgram(prog);
