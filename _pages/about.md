@@ -1,29 +1,48 @@
 ---
-layout: about
+layout: default
 title: About
 permalink: /
-subtitle: Research Assistant @ <a href='https://www.fkie.fraunhofer.de/'>Fraunhofer FKIE</a>. Computer Science @ <a href='https://www.uni-bonn.de/'>University of Bonn</a>.
-
-profile: false
-
-selected_papers: false # includes a list of papers marked as "selected={true}"
-social: true # includes social icons at the bottom of the page
-
-announcements:
-  enabled: false # includes a list of news items
-  scrollable: true # adds a vertical scroll bar if there are more than 3 news items
-  limit: 5 # leave blank to include all the news in the `_news` folder
-
-latest_posts:
-  enabled: false
-  scrollable: true # adds a vertical scroll bar if there are more than 3 new posts items
-  limit: 3 # leave blank to include all the blog posts
+background: glass
 ---
 
-I want to see AI take my job, so that I can live on a farm in the mountains with my 6 dogs and 3 cats.
+<section class="slot slot-hero">
+  <h1>{{ site.first_name }} {{ site.last_name }}</h1>
+  <p>AI safety research at the University of Bonn.</p>
+</section>
 
-Currently, I am a research assistant at Fraunhofer FKIE in the Graph RL lab, and a M.Sc. student in Computer Science at the University of Bonn. My interests are RL, NLP, agents and their harnesses, and the intersection of all of them. I want to see AI make a positive impact on the world in a safe and controlled way, and I want take a part in shaping that future. 
+<section class="slot">
+  <p>I want to see AI take my job, so that I can live on a farm in the mountains with my 6 dogs and 3 cats.</p>
+</section>
 
-Besides my research interests, I love to go hiking, especially in the alps, to climb up some funny, colorful rocks and I feel good when I pass an old couple on their E-bike, while I am sweating (a lot). You will also find me sitting in a cafe with my friends or on basically any flea market ever. 
+<section class="slot">
+  <p>Currently, I am a graduate research assistant at the University of Bonn, working on AI safety, and an M.Sc. student in Computer Science there. My interests are RL, NLP, agents and their harnesses, and the intersection of all of them.</p>
+</section>
 
-Have fun looking around :)
+<section class="slot">
+  <p>I want to see AI make a positive impact on the world in a safe and controlled way, and I want to take part in shaping that future.</p>
+</section>
+
+<section class="slot">
+  <p>Besides my research interests, I love to go hiking, especially in the Alps, to climb up some funny, colorful rocks, and I feel good when I pass an old couple on their E-bike while I am sweating (a lot).</p>
+</section>
+
+<section class="slot">
+  <p>You will also find me sitting in a café with my friends or on basically any flea market ever.</p>
+</section>
+
+<section class="slot">
+  <p>Have fun looking around :)</p>
+</section>
+
+<div class="slot-row">
+  <a href="{{ '/experience/' | relative_url }}"><h3>Graduate Research Assistant</h3><p>University of Bonn · since Nov 2026</p></a>
+  <a href="{{ '/experience/' | relative_url }}"><h3>M.Sc. Computer Science</h3><p>University of Bonn · since Apr 2026</p></a>
+</div>
+
+<div class="slot-row slot-links">
+  <a href="{{ '/experience/' | relative_url }}"><h3>Experience</h3></a>
+  <a href="{{ '/publications/' | relative_url }}"><h3>Publications</h3></a>
+  <a href="{{ '/projects/' | relative_url }}"><h3>Projects</h3></a>
+  <a href="{{ '/blog/' | relative_url }}"><h3>Blog</h3></a>
+  <div class="slot-social">{% social_links %}</div>
+</div>

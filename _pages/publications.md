@@ -2,9 +2,9 @@
 layout: page
 permalink: /publications/
 title: Publications
-description: My academic work, including my bachelor thesis.
+description: Papers and working notes.
 nav: true
-nav_order: 2
+nav_order: 3
 ---
 
 <!-- _pages/publications.md -->

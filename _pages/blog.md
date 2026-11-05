@@ -3,7 +3,8 @@ layout: default
 permalink: /blog/
 title: Blog
 nav: true
-nav_order: 1
+nav_order: 5
+background: tiles
 pagination:
   enabled: true
   collection: posts
@@ -23,7 +24,7 @@ pagination:
 
 {% if blog_name_size > 0 or blog_description_size > 0 %}
 
-  <div class="header-bar">
+  <div class="header-bar slot">
     <h1>{{ site.blog_name }}</h1>
     <h2>{{ site.blog_description }}</h2>
   </div>
@@ -90,7 +91,15 @@ pagination:
 
 {% endif %}
 
-  <ul class="post-list">
+{% if site.posts.size == 0 %}
+
+  <div class="empty-state slot">
+    <div class="empty-icon"><i class="fa-solid fa-pen-nib"></i></div>
+    <p>No posts yet — the first one is in the kiln.</p>
+  </div>
+  {% endif %}
+
+  <ul class="post-list slot-row" data-cols="1">
 
     {% if page.pagination.enabled %}
       {% assign postlist = paginator.posts %}

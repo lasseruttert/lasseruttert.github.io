@@ -1,0 +1,30 @@
+<div class="slot-row timeline" data-cols="2">
+  {% for org in include.items %}
+    {% for role in org.roles %}
+      <div class="tl-card">
+        <h3>{{ role.title }}</h3>
+        <div class="tl-meta">
+          {% if org.url -%}
+            <a href="{{ org.url }}">{{ org.org }}</a>
+          {%- else -%}
+            {{- org.org -}}
+          {%- endif %}
+          · {{ role.dates }}
+        </div>
+        {% if role.description %}
+          <p>{{ role.description }}</p>
+        {% endif %}
+        {% if role.description2 %}
+          <p>{{ role.description2 }}</p>
+        {% endif %}
+        {% if role.highlights %}
+          <ul>
+            {% for h in role.highlights %}
+              <li>{{ h }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>

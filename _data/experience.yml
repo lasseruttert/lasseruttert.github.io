@@ -1,0 +1,35 @@
+# Work experience, newest first. Shown on /experience/ via _includes/timeline.liquid
+- org: The University of Bonn
+  url: https://www.uni-bonn.de/
+  location: Bonn, North Rhine-Westphalia, Germany
+  span: 8 mos
+  roles:
+    - title: Graduate Research Assistant
+      dates: Nov 2026 – Present
+      description: 🤫
+    - title: Volunteer Research Assistant
+      dates: Apr 2026 – Oct 2026
+      description: >-
+        Research on AI Safety with the CAISA lab at b-it Center, specifically on Emergent Misalignment in the context
+        of Reinforcement Learning and Continual Alignment.
+
+- org: Fraunhofer FKIE
+  url: https://www.fkie.fraunhofer.de/
+  location: Wachtberg, North Rhine-Westphalia, Germany
+  span: 1 yr 7 mos
+  roles:
+    - title: Student Research Assistant
+      dates: Apr 2025 – Oct 2026
+      description: >-
+        Researched graph reinforcement learning for online combinatorial optimization in the ITF group under the
+        supervision of Dr. Hans-Christian Schmitz and Jonathan Cawalla. Focus on dynamic routing problems such as the
+        Pickup and Delivery Problem.
+      description2: >-
+        Worked on a project on online transport and treatment planning for patients in mass casualty incidents.
+        Designed problem-specific heuristic baselines, developed, trained and evaluated graph-based RL policies, and
+        built harnesses that let LLM agents solve the problem directly.
+    - title: Bachelor Thesis
+      dates: Oct 2025 – Mar 2026
+      description: >-
+        Conducted a literature review on reinforcement learning and metaheuristic approaches for Vehicle Routing
+        Problems for another project, which developed into my bachelor thesis topic. Details in the Education section.

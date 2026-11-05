@@ -4,12 +4,12 @@
 
 title: blank # the website title (if blank, full name will be used instead)
 first_name: Lasse
-middle_name: 
+middle_name:
 last_name: Ruttert
 contact_note: >
   Do not contact me.
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
-  Computer science student at University of Bonn. Research assistant at Fraunhofer FKIE. Interested in RL, NLP, and Agents.
+  Graduate research assistant and M.Sc. Computer Science student at the University of Bonn. Interested in AI safety, RL, NLP, and agents.
 footer_text: >
   Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
   Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
@@ -226,6 +226,16 @@ defaults:
       path: "assets"
     values:
       sitemap: false
+  - scope:
+      path: ""
+      type: posts
+    values:
+      background: tiles
+  - scope:
+      path: ""
+      type: projects
+    values:
+      background: tiles
 
 sass:
   style: compressed
@@ -450,7 +460,7 @@ third_party_libraries:
     version: "5.5.0"
   google_fonts:
     url:
-      fonts: "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&display=swap"
+      fonts: "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Pixelify+Sans:400,500,600,700|Material+Icons&display=swap"
   highlightjs:
     integrity:
       css:

@@ -1,0 +1,18 @@
+# Education, newest first. Shown on /experience/ via _includes/timeline.liquid
+- org: The University of Bonn
+  url: https://www.uni-bonn.de/
+  location: Bonn, Germany
+  roles:
+    - title: Master, Computer Science
+      dates: Apr 2026 – Present
+      description: Intelligent Systems Track with focus on Natural Language Processing, AI Safety and Interpretability.
+      highlights:
+        - "Grade: 1.1 (currently)"
+    - title: Bachelor of Science, Computer Science
+      dates: Oct 2022 – Mar 2026
+      description: >-
+        Thesis: Developed a Memetic Algorithm for the Pickup and Delivery Problem with Time Windows, using an agent
+        trained via Reinforcement Learning to intelligently select operators for the local search (Grade: 1.0).
+      highlights:
+        - "Grade: With Honors"
+        - '<a href="https://github.com/lasseruttert/rl-memetic-pdptw">Thesis code on GitHub</a>'
