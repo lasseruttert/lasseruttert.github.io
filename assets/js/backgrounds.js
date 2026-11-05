@@ -1983,6 +1983,208 @@
     return c;
   }
 
+  // ============================================================ PATCHWORK (blog)
+  // Square patches of woven fabric (plaid, gingham, tweed, corduroy, herringbone,
+  // star appliqué) joined with cream blanket stitches. Rendered through the knot
+  // shader, so it shares the rug's pixelated weave.
+  var FAB = {
+    rust: "#9a4a2a",
+    mustard: "#b8892e",
+    navy: "#1f2b45",
+    forest: "#2f4a35",
+    wine: "#6e2026",
+    oat: "#b9a98a",
+    brown: "#5a3a26",
+    olive: "#6b6a3a",
+    slate: "#3e4650",
+    teal: "#2e5552",
+  };
+  var FAB_KEYS = Object.keys(FAB);
+  var FAB_CHAR = "#26211d",
+    FAB_CREAM = "#dccca4";
+  function fshade(hex, f, a) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = clamp(Math.round(((n >> 16) & 255) * f), 0, 255),
+      g = clamp(Math.round(((n >> 8) & 255) * f), 0, 255),
+      b = clamp(Math.round((n & 255) * f), 0, 255);
+    return "rgba(" + r + "," + g + "," + b + "," + (a === undefined ? 1 : a) + ")";
+  }
+  function blanketStitch(g, x, y, s) {
+    g.strokeStyle = FAB_CREAM;
+    g.lineWidth = 2;
+    g.beginPath();
+    for (var t = 6; t < s - 3; t += 9) {
+      g.moveTo(x + t, y + 1);
+      g.lineTo(x + t, y + 6);
+      g.moveTo(x + t, y + s - 1);
+      g.lineTo(x + t, y + s - 6);
+      g.moveTo(x + 1, y + t);
+      g.lineTo(x + 6, y + t);
+      g.moveTo(x + s - 1, y + t);
+      g.lineTo(x + s - 6, y + t);
+    }
+    g.stroke();
+  }
+  function drawPatch(g, x, y, w, h, col, type) {
+    g.save();
+    g.beginPath();
+    g.rect(x, y, w, h);
+    g.clip();
+    g.fillStyle = col;
+    g.fillRect(x, y, w, h);
+    var i;
+    if (type === "plaid") {
+      var c2 = fshade(col, 1.45, 0.5),
+        c3 = fshade(col, 0.55, 0.7);
+      for (i = 0; i < Math.max(w, h); i += 24) {
+        g.fillStyle = c2;
+        g.fillRect(x + i, y, 7, h);
+        g.fillRect(x, y + i, w, 7);
+        g.fillStyle = c3;
+        g.fillRect(x + i + 14, y, 2, h);
+        g.fillRect(x, y + i + 14, w, 2);
+      }
+    } else if (type === "gingham") {
+      g.fillStyle = fshade(col, 1.5, 0.45);
+      for (i = 0; i < w; i += 20) g.fillRect(x + i, y, 10, h);
+      for (i = 0; i < h; i += 20) g.fillRect(x, y + i, w, 10);
+    } else if (type === "tweed") {
+      for (i = 0; i < (w * h) / 18; i++) {
+        g.fillStyle = R() < 0.85 ? fshade(col, rnd(0.6, 1.5)) : pick([FAB_CREAM, FAB.mustard, FAB.rust]);
+        g.fillRect(x + rnd(0, w), y + rnd(0, h), rnd(1, 3), rnd(1, 2));
+      }
+    } else if (type === "cord") {
+      for (i = 0; i < w; i += 6) {
+        g.fillStyle = fshade(col, i % 12 ? 1.18 : 0.82);
+        g.fillRect(x + i, y, 3, h);
+      }
+    } else if (type === "herring") {
+      g.strokeStyle = fshade(col, 1.35);
+      g.lineWidth = 2;
+      g.beginPath();
+      for (var yy = 0; yy < h; yy += 9) {
+        for (var xx = 0; xx < w; xx += 9) {
+          var dir = (Math.floor(xx / 9) % 2) * 2 - 1;
+          g.moveTo(x + xx, y + yy + (dir > 0 ? 0 : 8));
+          g.lineTo(x + xx + 7, y + yy + (dir > 0 ? 8 : 0));
+        }
+      }
+      g.stroke();
+    } else if (type === "star") {
+      var sc = pick([FAB.navy, FAB.wine, FAB.forest, FAB.brown]);
+      var cx = x + w / 2,
+        cy = y + h / 2,
+        r = Math.min(w, h) * 0.36;
+      g.fillStyle = sc;
+      star(g, cx, cy, r, r * 0.45, 5, -Math.PI / 2);
+      g.fill();
+      g.setLineDash([3, 3]);
+      g.strokeStyle = FAB_CREAM;
+      g.lineWidth = 1.6;
+      g.stroke();
+      g.setLineDash([]);
+    }
+    // a little fuzz on every fabric
+    for (i = 0; i < (w * h) / 60; i++) {
+      g.fillStyle = "rgba(255,240,210," + rnd(0, 0.08) + ")";
+      g.fillRect(x + rnd(0, w), y + rnd(0, h), 1, 1);
+    }
+    g.restore();
+  }
+  function drawPatchwork(ctx, W, H, rects, gx0, gy0, u) {
+    ctx.fillStyle = FAB_CHAR;
+    ctx.fillRect(0, 0, W, H);
+    var cols = Math.ceil((W - gx0) / u) + 1,
+      rows = Math.ceil((H - gy0) / u) + 1;
+    var used = [];
+    for (var r = 0; r < rows; r++) used.push(new Uint8Array(cols));
+    rects.forEach(function (s) {
+      var c0 = Math.round((s.x - gx0) / u),
+        r0 = Math.round((s.y - gy0) / u);
+      for (var y = r0; y < Math.min(rows, r0 + Math.round(s.h / u)); y++)
+        for (var x = c0; x < Math.min(cols, c0 + Math.round(s.w / u)); x++) if (y >= 0 && x >= 0) used[y][x] = 1;
+    });
+    var colour = [];
+    var types = ["plaid", "plaid", "gingham", "tweed", "tweed", "cord", "herring", "star", "plain"];
+    for (r = 0; r < rows; r++) {
+      colour.push([]);
+      for (var c = 0; c < cols; c++) {
+        var near = [c > 0 ? colour[r][c - 1] : null, r > 0 ? colour[r - 1][c] : null];
+        var key;
+        do key = pick(FAB_KEYS);
+        while (near.indexOf(key) >= 0);
+        colour[r].push(key);
+        if (used[r][c]) continue;
+        var t = pick(types);
+        var base = t === "star" ? pick([FAB.oat, FAB.mustard, FAB.olive]) : FAB[key];
+        var x0 = gx0 + c * u,
+          y0 = gy0 + r * u;
+        drawPatch(ctx, x0 + 2, y0 + 2, u - 4, u - 4, base, t);
+        blanketStitch(ctx, x0 + 2, y0 + 2, u - 4);
+      }
+    }
+    // the large patches that hold text: plain dark fabric with a stitched inner border
+    var plateCols = [FAB.navy, FAB.wine, FAB.forest, FAB.brown, FAB.slate];
+    rects.forEach(function (s, i) {
+      var col = plateCols[i % plateCols.length];
+      drawPatch(ctx, s.x + 2, s.y + 2, s.w - 4, s.h - 4, col, "tweed");
+      ctx.save();
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = FAB_CREAM;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(s.x + 12, s.y + 12, s.w - 24, s.h - 24);
+      ctx.restore();
+      ctx.strokeStyle = FAB_CREAM;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (var tt = 6; tt < s.w - 3; tt += 9) {
+        ctx.moveTo(s.x + tt, s.y + 3);
+        ctx.lineTo(s.x + tt, s.y + 8);
+        ctx.moveTo(s.x + tt, s.y + s.h - 3);
+        ctx.lineTo(s.x + tt, s.y + s.h - 8);
+      }
+      for (tt = 6; tt < s.h - 3; tt += 9) {
+        ctx.moveTo(s.x + 3, s.y + tt);
+        ctx.lineTo(s.x + 8, s.y + tt);
+        ctx.moveTo(s.x + s.w - 3, s.y + tt);
+        ctx.lineTo(s.x + s.w - 8, s.y + tt);
+      }
+      ctx.stroke();
+    });
+  }
+
+  // warm, blurry backdrop seen through the amber glass: sky, ochre earth, a little green
+  function makeWarmBackdrop(fw, fh) {
+    var c = makeCanvas(fw, fh);
+    var g = c.getContext("2d");
+    var bg = g.createLinearGradient(0, 0, 0, fh);
+    bg.addColorStop(0, "#d9e3ea");
+    bg.addColorStop(0.35, "#e8c98e");
+    bg.addColorStop(0.6, "#9a5a22");
+    bg.addColorStop(1, "#3a2410");
+    g.fillStyle = bg;
+    g.fillRect(0, 0, fw, fh);
+    var cols = ["#dbe6ef", "#f4e7c8", "#c8862c", "#7a4318", "#2e1c0c", "#7a8f3a", "#a9c07a", "#ffb347"];
+    for (var i = 0; i < (fw * fh) / 2500; i++) {
+      var x = rnd(0, fw),
+        y = rnd(0, fh),
+        r = rnd(20, 110);
+      var rg = g.createRadialGradient(x, y, 0, x, y, r);
+      var col = pick(cols);
+      rg.addColorStop(0, col);
+      rg.addColorStop(1, "rgba(0,0,0,0)");
+      g.globalAlpha = rnd(0.25, 0.7);
+      g.fillStyle = rg;
+      g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    g.globalAlpha = 1;
+    var out = makeCanvas(fw, fh);
+    var o = out.getContext("2d");
+    if (supportsFilter) o.filter = "blur(4px)";
+    o.drawImage(c, 0, 0);
+    return out;
+  }
+
   // ============================================================ maps for the shaders
   function h2(x, y) {
     var n = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263)) | 0;
@@ -2419,13 +2621,18 @@ void cellInfo(vec2 w,out vec2 lp,out vec2 sz,out vec4 meta){
   var FS_GLASS =
     COMMON +
     `
-uniform sampler2D uFar;uniform sampler2D uNear;uniform vec2 uFol;
+uniform sampler2D uFar;uniform sampler2D uNear;uniform vec2 uFol;uniform float uMode;
 float glassH(vec2 w,out float frost,out float plate,out float face){
   vec2 lp,sz;vec4 meta;cellInfo(w,lp,sz,meta);
   float type=meta.x,seed=meta.y;frost=meta.z/255.;plate=step(6.5,type);
   float r1=hash(vec2(seed,2.)),r2=hash(vec2(seed,3.));
-  float e=plate>.5?22.:clamp(min(sz.x,sz.y)*(.1+.04*r1),9.,18.);
+  float e=plate>.5?22.:uMode>.5?clamp(min(sz.x,sz.y)*.17,12.,24.):clamp(min(sz.x,sz.y)*(.1+.04*r1),9.,18.);
   float d=min(min(lp.x,lp.y),min(sz.x-lp.x,sz.y-lp.y))-.6;
+  if(uMode>.5){
+    float su=sin(3.1416*clamp(lp.x/sz.x,0.,1.)),sv=sin(3.1416*clamp(lp.y/sz.y,0.,1.));
+    float b1=1.+4.*hash(vec2(seed,11.)),b2=1.+4.*hash(vec2(seed,12.)),b3=1.+4.*hash(vec2(seed,13.)),b4=1.+4.*hash(vec2(seed,14.));
+    d=min(min(lp.y-b1*su,sz.y-lp.y-b2*su),min(lp.x-b3*sv,sz.x-lp.x-b4*sv))-.6;
+  }
   d+=(vn(vec2(seed*7.3+(lp.x+lp.y)*.05,seed))-.5)*1.3;
   float rim=1.-pow(1.-smoothstep(0.,e*.75,d),2.);
   float inner=smoothstep(e*.8,e*1.35,d);
@@ -2442,7 +2649,17 @@ float glassH(vec2 w,out float frost,out float plate,out float face){
   else if(type<4.5){pat=.5+.5*cos(length(lp-sz*vec2(mix(.3,.7,r1),mix(.3,.7,r2)))*.42);}
   else if(type<5.5){vec2 q=(lp-sz*.5)/sz*2.;float dd=dot(q,q);pat=clamp(1.-dd,0.,1.)*.7+vn(lp*.04+seed)*.5;}
   else{pat=vn(lp*.008+seed)*.6+vn(lp*.03+seed*2.)*.2;}
-  float h=rim*.85-inner*.27+inner*pat*(plate>.5?.1:.2)+(vn(w*.025+seed)-.5)*.07;
+  if(uMode>.5){
+    // every block has its own pressed-glass surface, all slowly moving
+    float pk=floor(hash(vec2(seed,5.))*5.);
+    vec2 dq=lp-sz*.5;float rr=length(dq);float tt=uTime;
+    if(pk<.5)pat=vn(lp*.016+seed)*.6+vn(lp*.045+seed*3.)*.35+.15*sin(lp.x*.03+lp.y*.022+tt*.5+seed);
+    else if(pk<1.5){vec2 o=vec2(sin(tt*.2+seed),cos(tt*.17+seed))*6.;pat=vn((lp+o)*.07+seed)*.7+vn((lp-o)*.15+seed*2.)*.35;}
+    else if(pk<2.5)pat=.5+.5*sin(atan(dq.y,dq.x)*2.+rr*.07+tt*.3+seed)*smoothstep(4.,34.,rr)+vn(lp*.03+seed)*.2;
+    else if(pk<3.5)pat=.5+.5*sin(lp.y*mix(.05,.09,r1)+sin(lp.x*.035+tt*.45+seed)*2.4);
+    else pat=.5+.5*cos(rr*.22-tt*.8+seed);
+  }
+  float h=rim*.85-inner*.27+inner*pat*(plate>.5?(uMode>.5?.16:.1):(uMode>.5?.44:.2))+(vn(w*.025+seed)-.5)*.07;
   return d>.5?h:0.;
 }
 void main(){
@@ -2458,21 +2675,35 @@ void main(){
   float edge=1.-n.z;
   float lod=frost*3.2+edge*2.5;
   vec2 fp=pv+vec2(0.,uScrollY*.35);
+  if(uMode>.5)fp+=vec2(sin(fp.y*.006+t*.35)+.6*sin(fp.y*.017+fp.x*.004+t*.6),cos(fp.x*.005+t*.28)+.5*cos(fp.x*.013-fp.y*.006+t*.5))*42.;
   vec3 far=textureLod(uFar,(fp+refr*1.5+sway*.5-par*12.)/uFol,lod+.6).rgb;
   vec4 nr=textureLod(uNear,(fp+vec2(0.,uScrollY*.15)+refr+sway*1.4-par*28.)/uFol,lod);
   vec3 col=mix(far,nr.rgb,nr.a);
-  vec3 tint=vec3(.55,.8,.48);
-  col*=mix(vec3(1.),tint,.2+min(edge*2.6,.65));
-  // milky glass: light scatters inside, leaves only show as soft shapes
-  col=mix(col,vec3(.6,.7,.55)*(.85+.3*dot(col,vec3(.6))),frost*.5*(1.-plate*.8));
-  col=mix(col,col*.72+vec3(.02,.05,.03),plate*face*.55);
+  if(uMode>.5){
+    // amber: clear coloured glass, every block its own tint, rims deeper in colour
+    vec2 lp2,sz2;vec4 mt;cellInfo(w,lp2,sz2,mt);
+    int ti=int(mt.w+.5);
+    vec3 tint=ti==0?vec3(1.,.52,.1):ti==1?vec3(1.,.76,.28):ti==2?vec3(.62,.32,.14):ti==3?vec3(.58,.74,.4):ti==4?vec3(.74,.58,.42):vec3(.98,.86,.66);
+    if(plate>.5)tint=vec3(.6,.3,.1);
+    col=col*tint*(1.3+.3*edge);
+    col=mix(col,col*col*1.7,.28);
+    col*=mix(1.,.6,min(edge*2.,1.));
+    col=mix(col,col*.55,plate*face*.55);
+  }else{
+    vec3 tint=vec3(.55,.8,.48);
+    col*=mix(vec3(1.),tint,.2+min(edge*2.6,.65));
+    // milky glass: light scatters inside, leaves only show as soft shapes
+    col=mix(col,vec3(.6,.7,.55)*(.85+.3*dot(col,vec3(.6))),frost*.5*(1.-plate*.8));
+    col=mix(col,col*.72+vec3(.02,.05,.03),plate*face*.55);
+  }
   vec3 key=normalize(vec3(-.45,-.6,1.));
   col*=.8+.26*dot(n,key);
   vec3 V=vec3(0.,0.,1.);
   vec3 Lm=normalize(vec3(uMouse-pv,230.));
   float sm=pow(max(dot(n,normalize(Lm+V)),0.),50.)*.13*uHover;
-  float sk=pow(max(dot(n,normalize(key+V)),0.),36.)*.05;
-  col+=vec3(.8,.92,.7)*(sm+sk);
+  float sk=pow(max(dot(n,normalize(key+V)),0.),36.)*(.05+uMode*.2);
+  sm*=1.+uMode*1.5;
+  col+=mix(vec3(.8,.92,.7),vec3(1.,.94,.82),uMode)*(sm+sk);
   col*=mix(.12,1.,smoothstep(0.,.05,h));
   col*=hs*(1.+.07*lift);
   outColor=vec4(col*vig(p),1.);
@@ -2572,6 +2803,88 @@ void main(){
   outColor=vec4(col*vig(p),1.);
 }`;
 
+  // epoxy tiles: a thick glossy clear coat over shiny undersides (crumpled foil,
+  // mother of pearl, worn printed lace, deep dark), all in blues
+  var FS_PEARL =
+    COMMON +
+    `
+uniform sampler2D uAtlas;uniform vec2 uAtlasGrid;uniform float uGrout;
+vec3 design(float id,vec2 uv){
+  vec2 ac=vec2(mod(id,uAtlasGrid.x),floor(id/uAtlasGrid.x));
+  return textureLod(uAtlas,(ac+clamp(uv,.004,.996))/uAtlasGrid,1.).rgb;
+}
+float ridged(vec2 p){
+  float v=0.,a=.55;
+  for(int i=0;i<3;i++){v+=a*(1.-abs(vn(p)*2.-1.));p*=1.9;a*=.5;}
+  return v;
+}
+vec3 pal(float i){
+  i=mod(floor(i+.5),8.);
+  return i<.5?vec3(.08,.13,.3):i<1.5?vec3(.15,.32,.58):i<2.5?vec3(.48,.68,.84):i<3.5?vec3(.2,.4,.66):
+    i<4.5?vec3(.1,.36,.44):i<5.5?vec3(.05,.07,.14):i<6.5?vec3(.34,.5,.7):vec3(.28,.4,.62);
+}
+void main(){
+  vec2 p=P();vec2 w=p+vec2(0.,uTop);
+  float lift,hs;w=hoverWarp(w,lift,hs);
+  vec2 lp,sz;vec4 meta;cellInfo(w,lp,sz,meta);
+  float plate=step(6.5,meta.x);
+  vec2 cellId=floor((w-uOrg)/uU);
+  float seed=plate>.5?meta.w:hash(cellId)*255.;
+  float g=uGrout;vec2 q=lp-g*.5;vec2 s=sz-g;
+  float rr=plate>.5?10.:s.x*.08;
+  float bev=plate>.5?18.:s.x*.18;
+  vec2 hq=abs(q-s*.5)-(s*.5-rr);
+  float sd=length(max(hq,0.))+min(max(hq.x,hq.y),0.)-rr;
+  float tt=clamp(-sd/bev,0.,1.);
+  float tile=step(sd,0.);
+  // the coat: a thick, slightly uneven pillow of resin
+  float h=mix(-.12,1.-pow(1.-tt,2.)+(vn(q*.03+seed)-.5)*.06,tile);
+  vec2 dh=vec2(dFdx(h),-dFdy(h))*uDpr;
+  vec3 nC=normalize(vec3(-dh*13.,1.));
+  // what lies beneath, seen through the coat (a little refracted)
+  vec2 uq=q+nC.xy*8.;
+  float cr=ridged(uq*mix(.009,.02,hash(vec2(seed,4.)))+seed*.37);
+  vec2 dc=vec2(dFdx(cr),-dFdy(cr))*uDpr;
+  vec3 nU=normalize(vec3(-dc*14.,1.));
+  vec3 pd=design(meta.w,clamp(uq/s,0.,1.));
+  float kind=plate>.5?0.:floor(meta.z+.5);
+  vec3 base=plate>.5?vec3(.06,.12,.27):pal(meta.y);
+  vec3 key=normalize(vec3(-.5,-.65,1.));
+  vec3 V=vec3(0.,0.,1.);
+  float lit=.5+.65*max(dot(nU,key),0.);
+  float sheen=pow(max(dot(nU,normalize(key+V)),0.),16.);
+  // calmer under the text
+  lit=mix(lit,.85,plate*.7);
+  sheen*=1.-plate*.7;
+  vec3 alb=base*lit+sheen*.38*mix(vec3(.82,.9,1.),base*1.8,.35);
+  if(kind>.5&&kind<1.5){
+    // mother of pearl: iridescent, changing with the crinkles
+    // pastel, cool colour shift like the inside of a shell
+    vec3 irid=vec3(.5,.62,.84)+.2*cos(6.2832*(cr*1.1+vn(uq*.012+seed)*.6+vec3(0.,.33,.67)))*vec3(.7,.8,1.);
+    alb=mix(alb,irid*(.72+.48*lit),.72);
+  }else if(kind>1.5&&kind<2.5){
+    // a printed pattern under the coat, worn away in places
+    float m=1.-dot(pd,vec3(.333));
+    m*=smoothstep(.25,.75,vn(uq*.045+seed)+.25);
+    alb=mix(alb,vec3(.55,.7,.88)*(.75+.35*lit),clamp(m*1.2,0.,.8));
+  }else if(kind>2.5){
+    alb*=.4;
+  }
+  // grout
+  alb=mix(vec3(.1,.13,.18)*(.8+.3*vn(w*.6)),alb,tile);
+  float ao=mix(.55,1.,smoothstep(0.,g*.7,sd));
+  // the coat itself: glossy, brighter at glancing angles, a soft window reflection
+  vec3 col=alb*(.86+.2*max(dot(nC,key),0.));
+  col*=mix(ao,1.,tile);
+  float spec=pow(max(dot(nC,normalize(key+V)),0.),150.)*.75+pow(max(dot(nC,normalize(key+V)),0.),28.)*.07;
+  vec3 rf=reflect(-V,nC);
+  float env=smoothstep(.12,.42,dot(rf.xy,normalize(vec2(-.6,-.8))))*.14;
+  float fres=pow(1.-nC.z,2.)*.5;
+  col+=tile*(vec3(1.,1.,1.)*spec+vec3(.85,.92,1.)*(env+fres));
+  col*=hs*(1.+.06*lift);
+  outColor=vec4(col*vig(p),1.);
+}`;
+
   // ============================================================ driver
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var gl = null,
@@ -2621,7 +2934,7 @@ void main(){
   }
 
   // render pixels are 2x2 css px: chunky pixels, and a quarter of the work
-  var PIX = kind === "rug" ? 1 : 0.5;
+  var PIX = kind === "rug" || kind === "fabric" ? 1 : 0.5;
   var win = { top: -1, h: 0, docH: 0 };
   var textCanvas = null;
 
@@ -2651,7 +2964,7 @@ void main(){
     if (top === win.top) return false;
     win.top = top;
     canvas.style.top = top + "px";
-    if (kind === "rug") drawWovenText();
+    if (kind === "rug" || kind === "fabric") drawWovenText();
     return true;
   }
 
@@ -2765,6 +3078,9 @@ void main(){
   function gridUnit(W) {
     if (kind === "glass") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1400) / 8.5, 72, 140));
     if (kind === "tiles") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 11, 78, 136));
+    if (kind === "pearl") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 11, 76, 124));
+    if (kind === "amber") return Math.round(W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 12, 72, 112));
+    if (kind === "fabric") return Math.round((W < 576 ? clamp(W / 5, 60, 90) : clamp(Math.min(W, 1600) / 12, 72, 114)) / 3) * 3;
     return 24;
   }
 
@@ -2777,14 +3093,15 @@ void main(){
     dpr = PIX;
     unitSize = gridUnit(W);
     if (!gl) return true;
-    if (kind === "glass") {
-      R = mulberry32(7);
+    if (kind === "glass" || kind === "amber") {
+      R = mulberry32(kind === "amber" ? 31 : 7);
       var fw = Math.ceil(W * 0.6),
         fh = Math.ceil(H * 0.6);
-      texFromCanvas("uFar", makeFarFoliage(fw, fh), true, gl.MIRRORED_REPEAT);
-      texFromCanvas("uNear", makeNearFoliage(fw, fh), true, gl.MIRRORED_REPEAT);
+      u1("uMode", kind === "amber" ? 1 : 0);
+      texFromCanvas("uFar", kind === "amber" ? makeWarmBackdrop(fw, fh) : makeFarFoliage(fw, fh), true, gl.MIRRORED_REPEAT);
+      texFromCanvas("uNear", kind === "amber" ? makeCanvas(4, 4) : makeNearFoliage(fw, fh), true, gl.MIRRORED_REPEAT);
       u2("uFol", W, H);
-    } else if (kind === "tiles" && !cache.atlas) {
+    } else if ((kind === "tiles" || kind === "pearl") && !cache.atlas) {
       R = mulberry32(23);
       var D = 192,
         ag = [8, 5];
@@ -2809,11 +3126,34 @@ void main(){
   function buildWorld() {
     var W = css.w;
     var u = unitSize;
-    R = mulberry32({ glass: 7, rug: 11, tiles: 23 }[kind] + 101);
+    R = mulberry32({ glass: 7, rug: 11, tiles: 23, amber: 31, fabric: 41, pearl: 53 }[kind] + 101);
     var lay = kind === "rug" ? snapSlots.apply(null, rugTextColumn(u)) : scatterSlots(u, 1240);
     worldRects = lay.rects;
     if (!gl) return;
     sizeWindow(lay.docH);
+    if (kind === "fabric") {
+      var kf = 3;
+      var fox = ((lay.ox % kf) + kf) % kf,
+        foy = ((lay.oy % kf) + kf) % kf;
+      var maxTf = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      var fwid = Math.ceil(W / kf) + 1,
+        fhei = Math.min(maxTf, Math.ceil(lay.docH / kf) + 1);
+      var falb = makeCanvas(fwid, fhei);
+      var fctx = falb.getContext("2d");
+      fctx.scale(1 / kf, 1 / kf);
+      fctx.translate(-fox, -foy);
+      var fgx0 = lay.ox - u * Math.ceil(lay.ox / u),
+        fgy0 = lay.oy - u * Math.ceil(lay.oy / u);
+      drawPatchwork(fctx, W, lay.docH, lay.rects, fgx0, fgy0, u);
+      texFromCanvas("uAlb", falb, false);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      u2("uAlbSize", fwid, fhei);
+      u1("uKnot", kf);
+      u2("uKOrg", fox, foy);
+      ensureWindow();
+      return;
+    }
     if (kind === "rug") {
       var k = 3;
       var kox = ((lay.ox % k) + k) % k,
@@ -2836,7 +3176,44 @@ void main(){
       return;
     }
     var idx;
-    if (kind === "glass") {
+    if (kind === "pearl") {
+      idx = buildIndex(W, lay.docH, u, lay, function (used, cols, rows, blocks) {
+        blocks.forEach(function (b) {
+          b.meta = [7, 0, 0, Math.floor(R() * 255)];
+        });
+        // undersides: 0 foil, 1 mother of pearl, 2 printed pattern, 3 deep dark; neighbours differ in colour
+        var colour = [];
+        for (var r = 0; r < rows; r++) colour.push(new Int8Array(cols).fill(-1));
+        for (r = 0; r < rows; r++) {
+          for (var c = 0; c < cols; c++) {
+            if (used[r][c]) continue;
+            var near = [c > 0 ? colour[r][c - 1] : -1, r > 0 ? colour[r - 1][c] : -1];
+            var pc;
+            do pc = Math.floor(R() * 8);
+            while (near.indexOf(pc) >= 0);
+            colour[r][c] = pc;
+            used[r][c] = 1;
+            var tk = R();
+            var under = tk < 0.4 ? 0 : tk < 0.65 ? 1 : tk < 0.85 ? 2 : 3;
+            blocks.push({ c: c, r: r, w: 1, h: 1, meta: [0, pc, under, Math.floor(R() * 40)] });
+          }
+        }
+      });
+      u1("uGrout", Math.max(2, Math.round(u * 0.025)));
+      u1("uHovInset", Math.max(2, Math.round(u * 0.025)) / 2);
+      u1("uHovR", 10);
+    } else if (kind === "amber") {
+      u1("uHovInset", 1);
+      u1("uHovR", 3);
+      idx = buildIndex(W, lay.docH, u, lay, function (used, cols, rows, blocks) {
+        blocks.forEach(function (b) {
+          b.meta = [7, Math.floor(R() * 255), 30, 0];
+        });
+        packBlocks(used, cols, rows, blocks, [[1, 1, 1]], function () {
+          return [6, Math.floor(R() * 255), Math.floor(rnd(0, 0.22) * 255), Math.floor(R() * 6)];
+        });
+      });
+    } else if (kind === "glass") {
       u1("uHovInset", 1);
       u1("uHovR", 3);
       idx = buildIndex(W, lay.docH, u, lay, function (used, cols, rows, blocks) {
@@ -2943,13 +3320,13 @@ void main(){
       hov.el.style.zIndex = big ? "3" : "";
       if (!big && hov.target === 0) hov.el = null;
     }
-    if (kind === "glass") {
+    if (kind === "glass" || kind === "amber") {
       m.x += (m.tx - m.x) * 0.14;
       m.y += (m.ty - m.y) * 0.14;
       m.hover += (m.th - m.hover) * 0.08;
       moving = Math.abs(m.tx - m.x) > 0.3 || Math.abs(m.ty - m.y) > 0.3 || Math.abs(m.th - m.hover) > 0.005;
     }
-    var animated = !reduceMotion && kind === "glass";
+    var animated = !reduceMotion && (kind === "glass" || kind === "amber");
     if (!moving && !scrolled && animated && ts - last < 33) {
       kick();
       return;
@@ -2979,7 +3356,13 @@ void main(){
       try {
         prog = gl.createProgram();
         gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
-        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, kind === "glass" ? FS_GLASS : kind === "rug" ? FS_RUG : FS_TILES));
+        gl.attachShader(
+          prog,
+          compile(
+            gl.FRAGMENT_SHADER,
+            kind === "glass" || kind === "amber" ? FS_GLASS : kind === "rug" || kind === "fabric" ? FS_RUG : kind === "pearl" ? FS_PEARL : FS_TILES
+          )
+        );
         gl.linkProgram(prog);
         if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
         gl.useProgram(prog);
@@ -3010,7 +3393,7 @@ void main(){
     m.x = m.tx = css.w * 0.5;
     m.y = m.ty = css.h * 0.35;
     document.body.classList.add("bg-live");
-    if (kind !== "rug") {
+    if (kind !== "rug" && kind !== "fabric") {
       slotEls.forEach(function (e, i) {
         if (e.tagName !== "A") return;
         e.addEventListener("mouseenter", function () {
@@ -3050,7 +3433,7 @@ void main(){
     window.addEventListener(
       "pointermove",
       function (e) {
-        if (kind !== "glass") return;
+        if (kind !== "glass" && kind !== "amber") return;
         m.tx = e.clientX;
         m.ty = e.clientY;
         m.th = 1;
