@@ -239,14 +239,14 @@ defaults:
       type: projects
     values:
       layout: item
-      item_color: "#18201b"
+      item_color: "#221b17"
       back_url: /projects/
   - scope:
       path: ""
       type: publications
     values:
       layout: item
-      item_color: "#221b17"
+      item_color: "#22211e"
       back_url: /publications/
 
 sass:

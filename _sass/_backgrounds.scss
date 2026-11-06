@@ -626,13 +626,15 @@ body.bg-item {
   --global-text-color: #e8e2d8;
   --global-text-color-light: #b3aa9c;
 }
+// publications: the keyboard's dark plate with beige keycap accents
 body.bg-item-publications {
+  --global-bg-color: #22211e;
+  --global-theme-color: #d4c9a8;
+  --global-hover-color: #efe6cc;
+}
+// projects: muted amber
+body.bg-item-projects {
   --global-bg-color: #221b17;
   --global-theme-color: #c9a77a;
   --global-hover-color: #e6cfae;
-}
-body.bg-item-projects {
-  --global-bg-color: #18201b;
-  --global-theme-color: #9dbba6;
-  --global-hover-color: #c7ddcd;
 }

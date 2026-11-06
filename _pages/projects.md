@@ -5,7 +5,7 @@ title: Projects
 description: Research code, benchmarks and experiments.
 nav: true
 nav_order: 4
-background: tiles
+background: amber
 ---
 
 {% assign projects = site.projects | sort: "importance" %}

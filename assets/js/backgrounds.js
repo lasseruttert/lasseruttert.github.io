@@ -4105,7 +4105,7 @@ void main(){
     document.body.classList.add("bg-live");
     if (kind !== "rug" && kind !== "fabric") {
       slotEls.forEach(function (e, i) {
-        if (e.tagName !== "A") return;
+        if (e.tagName !== "A" || kind === "keys") return;
         e.addEventListener("mouseenter", function () {
           if (hov.el && hov.el !== e) {
             hov.el.style.transform = "";

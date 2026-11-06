@@ -5,7 +5,7 @@ title: Publications
 description: Papers and working notes.
 nav: true
 nav_order: 3
-background: amber
+background: keys
 ---
 
 {% assign pubs = site.publications | sort: "date" | reverse %}
