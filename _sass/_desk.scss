@@ -24,7 +24,7 @@ body.bg-desk {
 .desk {
   position: relative;
   // one screen to look at, then some scrolling for every message
-  height: calc(100vh + var(--n, 8) * 38vh);
+  height: calc(100vh + var(--n, 8) * 16vh);
   font-family: "Pixelify Sans", "Courier New", monospace;
 }
 
@@ -61,30 +61,31 @@ body.bg-desk {
     0 3vmin 8vmin rgba(0, 0, 0, 0.6),
     0 0 12vmin rgba(60, 200, 185, 0.12);
 }
-// the sloped walls around the tube: top and left in shade, bottom and right catching light
+// the recess the tube sits in: one smooth slope, shaded at the top, lit at the bottom
 .crt-recess {
   flex: 1;
   display: flex;
-  border-radius: 30px / 26px;
-  border-style: solid;
-  border-width: 2.2vmin 2.4vmin 2.6vmin;
-  border-color: #9d9373 #e2dac2 #f1ebd8 #b3a985;
-  box-shadow:
-    0 0 0 2px #b8ae8e,
-    0 -2px 0 2px rgba(255, 255, 255, 0.5),
-    inset 0 0 0 2px #2a2820;
   min-height: 0;
+  padding: 2vmin 2.2vmin 2.4vmin;
+  border-radius: 30px / 26px;
+  background: linear-gradient(180deg, #a39978 0%, #c4baa0 30%, #ddd5bd 70%, #efe9d6 100%);
+  box-shadow:
+    inset 0 3px 6px rgba(60, 48, 20, 0.45),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.55),
+    0 -1px 0 rgba(255, 255, 255, 0.6),
+    0 1px 0 rgba(90, 72, 36, 0.4);
 }
 .crt-screen {
   position: relative;
   flex: 1;
   overflow: hidden;
-  border-radius: 22px / 18px;
+  border-radius: 20px / 17px;
   background: #050605;
-  // the tube's light spills onto the walls of the recess
+  // a thin dark rim, and the tube's light falling onto the slope
   box-shadow:
-    0 0 1.6vmin 0.4vmin rgba(70, 230, 210, 0.45),
-    0 0 5vmin 1vmin rgba(70, 230, 210, 0.22);
+    0 0 0 3px #1d1b16,
+    0 0 0 4px rgba(255, 255, 255, 0.25),
+    0 0 2.4vmin 0.6vmin rgba(70, 230, 210, 0.32);
 }
 // bloom: the brightest parts of the picture glow a little
 .crt-screen::after {

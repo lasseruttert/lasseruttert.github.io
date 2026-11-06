@@ -106,7 +106,7 @@
     var room = root.offsetHeight - window.innerHeight;
     var p = room > 0 ? Math.min(1, Math.max(0, -r.top / room)) : 1;
     // the first message is there right away, the last one shortly before the end
-    return Math.min(msgs.length, 1 + Math.floor(p * msgs.length * 1.08));
+    return Math.min(msgs.length, 1 + Math.floor(p * msgs.length * 1.15));
   }
   function toBottom() {
     body.scrollTop = body.scrollHeight;
@@ -139,10 +139,10 @@
         txt.textContent = "";
         m.classList.add("is-shown");
         var k = 0;
-        var step = behind > 0 ? 6 : 26;
+        var step = behind > 0 ? 5 : 16;
         (function type() {
           if (dead) return;
-          k = Math.min(full.length, k + (behind > 1 ? 3 : 1));
+          k = Math.min(full.length, k + (behind > 1 ? 4 : behind > 0 ? 2 : 1));
           txt.textContent = full.slice(0, k);
           var ch = full.charAt(k - 1);
           if (ch !== " " || Math.random() < 0.6) tick(ch === " ");
@@ -151,7 +151,7 @@
           else done();
         })();
       },
-      i === 0 ? 500 : behind > 0 ? 250 : 650 + Math.min(900, full.length * 6)
+      i === 0 ? 400 : behind > 0 ? 200 : 450 + Math.min(500, full.length * 3)
     );
     function done() {
       busy = false;
