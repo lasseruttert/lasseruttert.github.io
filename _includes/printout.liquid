@@ -4,7 +4,7 @@
   out of the slot. Without JavaScript the whole printout is simply shown.
 {% endcomment %}
 <section class="printout" data-printout>
-  <p class="print-hint" aria-hidden="true">Scroll to print &darr;</p>
+  <p class="print-hint" aria-hidden="true"><span>&#9660; SCROLL TO FEED PAPER &#9660;</span></p>
   <div class="paper">
     <div class="sheet">
       <p class="pl stars" aria-hidden="true"></p>
@@ -12,7 +12,7 @@
         {{ site.first_name | upcase }}
         {{ site.last_name | upcase }}
       </h1>
-      <p class="pl center">CURRICULUM VITAE &middot; PRINTED {{ site.time | date: '%d.%m.%Y' }}</p>
+      <p class="pl center meta-head">CURRICULUM VITAE &middot; PRINTED {{ site.time | date: '%d.%m.%Y' }}</p>
       <p class="pl stars" aria-hidden="true"></p>
 
       <h2 class="pl">EXPERIENCE</h2>
@@ -26,16 +26,36 @@
       {% include printout-entries.liquid items=site.data.education %}
 
       <p class="pl stars" aria-hidden="true"></p>
-      <p class="pl center">*** END OF REPORT ***</p>
+      <p class="pl center meta-head">*** END OF REPORT ***</p>
     </div>
   </div>
 
   <div class="printer" aria-hidden="true">
-    <div class="printer-lid"></div>
-    <div class="printer-slot"><span class="printer-head"></span></div>
+    <div class="printer-top">
+      <div class="printer-vents-top"></div>
+      <div class="printer-lid">
+        <span class="printer-ruler"></span>
+      </div>
+      <div class="printer-vents-top"></div>
+    </div>
+    <div class="printer-slot">
+      <span class="tractor left"></span>
+      <span class="printer-rail"></span>
+      <span class="printer-head"></span>
+      <span class="tractor right"></span>
+    </div>
     <div class="printer-front">
-      <span class="printer-name">LR&middot;24 DOT MATRIX</span>
-      <span class="printer-leds"> <span class="led on"></span>POWER <span class="led" data-online></span>ONLINE </span>
+      <div class="printer-brand-box">
+        <span class="printer-badge"></span>
+        <span class="printer-name">LR&middot;24 FX DOT MATRIX</span>
+      </div>
+      <div class="printer-vents-front"></div>
+      <div class="printer-panel">
+        <span class="panel-item"><span class="led on"></span>POWER</span>
+        <span class="panel-item"><span class="led" data-online></span>ONLINE</span>
+        <span class="panel-btn">LF</span>
+        <span class="panel-btn">FF</span>
+      </div>
     </div>
     <span class="printer-knob"></span>
   </div>

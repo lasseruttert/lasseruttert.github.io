@@ -1,14 +1,13 @@
 {% comment %}
-  Projects: a box of 3.5" floppy disks, one per project, standing like an index.
-  floppy.js lifts a disk when the pointer is on it and, on a click, flies it into
-  the drive; the window next to it then reads the disk and shows the project,
-  while the box stays in view. Plain links to the project pages without JavaScript.
+  Projects: a pixel-art box of 3.5" floppy disks next to a 3.5" drive and a large
+  retro viewer window. Hovering slides a disk up in its slot; clicking flies it
+  into Drive A: and loads the project in the viewer window.
 {% endcomment %}
 {% assign projects = site.projects | sort: 'importance' %}
 <section class="floppy-scene" data-floppies>
   <header class="scene-head">
     <h1>{{ page.title }}</h1>
-    <p>Pick a disk from the box to read it.</p>
+    <p>Select a 3.5&quot; disk from the box to load it into Drive A:</p>
   </header>
 
   <div class="floppy-desk">
@@ -22,66 +21,86 @@
             style="--i: {{ forloop.index0 }}"
             data-disk="{{ project.slug }}"
           >
-            <span class="disk-label">
-              <span class="disk-strip" aria-hidden="true"><b>HD</b></span>
-              <span class="disk-title">{{ project.title }}</span>
-              {% if project.dates -%}
-                <span class="disk-dates">{{ project.dates }}</span>
-              {%- endif %}
-              <span class="disk-desc">{{ project.description }}</span>
+            <span class="disk-card">
+              <span class="disk-arrow" aria-hidden="true"></span>
+              <span class="disk-label">
+                <span class="disk-strip" aria-hidden="true"><b>INDEX &middot; HD 1.44M</b></span>
+                <span class="disk-title">{{ project.title }}</span>
+                {% if project.dates -%}
+                  <span class="disk-dates">{{ project.dates }}</span>
+                {%- endif %}
+                <span class="disk-desc">{{ project.description }}</span>
+              </span>
+              <span class="disk-shutter" aria-hidden="true"><span></span></span>
+              <span class="disk-wp" aria-hidden="true"></span>
             </span>
-            <span class="disk-shutter" aria-hidden="true"><span></span></span>
-            <span class="disk-wp" aria-hidden="true"></span>
           </a>
         {% endfor %}
       </div>
-      <div class="fbox-front" aria-hidden="true"><span>PROJECTS &middot; 3.5&quot; 1.44 MB</span></div>
+      <div class="fbox-front" aria-hidden="true">
+        <span>PROJECTS &middot; 3.5&quot; DS/HD</span>
+      </div>
     </div>
 
     <div class="fside">
       <div class="drive" aria-hidden="true">
         <div class="drive-face">
-          <span class="drive-slot" data-slot><span class="drive-flap"></span></span>
-          <span class="drive-row">
-            <span class="drive-led" data-led></span>
-            <span class="drive-name">A:</span>
-            <span class="drive-eject"></span>
-          </span>
+          <div class="drive-bay">
+            <span class="drive-slot" data-slot><span class="drive-flap"></span></span>
+            <div class="drive-row">
+              <span class="drive-led" data-led></span>
+              <span class="drive-name">DRIVE A: &middot; 1.44 MB HIGH DENSITY</span>
+              <span class="drive-eject" data-eject title="Eject disk">EJECT &#9167;</span>
+            </div>
+          </div>
+          <div class="drive-vents"></div>
         </div>
-        <span class="drive-foot"></span>
       </div>
 
       <div class="win viewer" data-viewer>
         <div class="win-title">
           <span class="win-dot" aria-hidden="true"></span>
-          <span class="win-name" data-viewer-title>A:\</span>
+          <span class="win-name" data-viewer-title>A:\ &mdash; Project Viewer</span>
           <span class="win-btns" aria-hidden="true"><b>_</b><b>&#9633;</b><b>&times;</b></span>
         </div>
-        <div class="viewer-body" aria-live="polite" data-viewer-body>
-          <p class="viewer-empty">
-            No disk in drive A:<br>
-            Pick a disk from the box.
-          </p>
+        <div class="win-menu" aria-hidden="true">
+          <span>File</span><span>Edit</span><span>View</span><span>Disk</span><span>Help</span>
         </div>
-        <div class="viewer-status"><span data-viewer-status>Ready</span><span>1.44 MB</span></div>
+        <div class="viewer-body" aria-live="polite" data-viewer-body>
+          <div class="viewer-empty">
+            <div class="empty-disk-icon" aria-hidden="true"></div>
+            <p class="empty-title">No disk inserted in Drive A:</p>
+            <p class="empty-sub">Click any 3.5&quot; floppy disk in the storage box on the left to load its project files.</p>
+          </div>
+        </div>
+        <div class="viewer-status">
+          <span data-viewer-status>Ready &mdash; Waiting for disk</span>
+          <span>3.5&quot; HD &middot; 1.44 MB</span>
+        </div>
       </div>
     </div>
   </div>
 
   {% for project in projects %}
     <template data-project="{{ project.slug }}">
-      <h2>{{ project.title }}</h2>
-      {% if project.dates %}
-        <p class="viewer-dates">{{ project.dates }}</p>
-      {% endif %}
-      <p>{{ project.description }}</p>
-      {{ project.content }}
-      <p class="viewer-links">
-        {% if project.github -%}
-          <a class="btn95" href="{{ project.github }}">Open on GitHub</a>
-        {%- endif %}
-        <a class="btn95" href="{{ project.url | relative_url }}">Project page</a>
-      </p>
+      <div class="viewer-doc">
+        <header class="viewer-doc-head">
+          <h2>{{ project.title }}</h2>
+          {% if project.dates %}
+            <p class="viewer-dates">{{ project.dates }}</p>
+          {% endif %}
+        </header>
+        <p class="viewer-lead">{{ project.description }}</p>
+        <div class="viewer-content">
+          {{ project.content }}
+        </div>
+        <div class="viewer-links">
+          {% if project.github -%}
+            <a class="btn95" href="{{ project.github }}" target="_blank" rel="noopener">Open on GitHub &nearr;</a>
+          {%- endif %}
+          <a class="btn95" href="{{ project.url | relative_url }}">Open full project page &rarr;</a>
+        </div>
+      </div>
     </template>
   {% endfor %}
 </section>

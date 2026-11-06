@@ -101,20 +101,43 @@
   var shown = 0, // messages started
     busy = false;
 
-  function wanted() {
+  function progress() {
     var r = root.getBoundingClientRect();
     var room = root.offsetHeight - window.innerHeight;
-    var p = room > 0 ? Math.min(1, Math.max(0, -r.top / room)) : 1;
-    // the first message is there right away, the last one shortly before the end
-    return Math.min(msgs.length, 1 + Math.floor(p * msgs.length * 1.15));
+    return room > 0 ? Math.min(1, Math.max(0, -r.top / room)) : 1;
   }
-  function toBottom() {
-    body.scrollTop = body.scrollHeight;
+  function wanted() {
+    var p = progress();
+    // show the first two messages right away, and finish shortly before the end
+    return Math.min(msgs.length, 2 + Math.floor(p * (msgs.length - 1) * 1.15));
+  }
+  function syncScroll(el) {
+    var maxScroll = body.scrollHeight - body.clientHeight;
+    if (maxScroll <= 0) {
+      body.scrollTop = 0;
+      return;
+    }
+    if (el) {
+      var elBottom = el.offsetTop + el.offsetHeight + 10;
+      if (elBottom > body.scrollTop + body.clientHeight) {
+        body.scrollTop = elBottom - body.clientHeight;
+      }
+    } else {
+      body.scrollTop = Math.round(progress() * maxScroll);
+    }
   }
   function finish() {
     options.classList.add("is-shown");
-    if (hint) hint.textContent = "Pick a reply above";
-    toBottom();
+    if (hint) hint.textContent = "Pick a section above";
+    syncScroll(options);
+  }
+  function onScroll() {
+    if (dead) return;
+    if (shown >= wanted() && !busy) {
+      syncScroll();
+      return;
+    }
+    next();
   }
   function next() {
     if (dead || busy || shown >= wanted()) return;
@@ -132,7 +155,7 @@
     typing.classList.add("is-on");
     body.appendChild(typing);
     body.appendChild(options);
-    toBottom();
+    syncScroll(typing);
     later(
       function () {
         typing.classList.remove("is-on");
@@ -146,22 +169,22 @@
           txt.textContent = full.slice(0, k);
           var ch = full.charAt(k - 1);
           if (ch !== " " || Math.random() < 0.6) tick(ch === " ");
-          toBottom();
+          syncScroll(m);
           if (k < full.length) later(type, step + (ch === "," || ch === "." ? step * 4 : Math.random() * step));
           else done();
         })();
       },
-      i === 0 ? 400 : behind > 0 ? 200 : 450 + Math.min(500, full.length * 3)
+      i === 0 ? 250 : behind > 0 ? 160 : 380 + Math.min(420, full.length * 2.5)
     );
     function done() {
       busy = false;
       if (shown >= msgs.length) finish();
-      else later(next, 120);
+      else later(next, 100);
     }
   }
 
-  on(window, "scroll", next, { passive: true });
-  on(window, "resize", next, { passive: true });
+  on(window, "scroll", onScroll, { passive: true });
+  on(window, "resize", onScroll, { passive: true });
   ["pointerdown", "keydown", "touchend", "wheel"].forEach(function (ev) {
     on(window, ev, unlock, { passive: true });
   });

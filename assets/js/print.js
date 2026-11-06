@@ -107,7 +107,12 @@
     if (dead) return;
     if (window.scrollY > 20) root.classList.add("is-going");
     var y = headY();
-    while (queued < lines.length && lines[queued].getBoundingClientRect().bottom <= y) queued++;
+    var atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 16;
+    if (atBottom) {
+      queued = lines.length;
+    } else {
+      while (queued < lines.length && lines[queued].getBoundingClientRect().top <= y) queued++;
+    }
     if (!busy) run();
   }
   var printed = 0;

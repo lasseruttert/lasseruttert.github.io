@@ -152,9 +152,11 @@
   var vBody = root.querySelector("[data-viewer-body]");
   var vTitle = root.querySelector("[data-viewer-title]");
   var vStatus = root.querySelector("[data-viewer-status]");
+  var ejectBtn = root.querySelector("[data-eject]");
+  var emptyHTML = vBody ? vBody.innerHTML : "";
   var busy = false,
     current = null; // the disk in the drive
-  function eject() {
+  function eject(resetViewer) {
     if (!current) return;
     var back = current;
     current = null;
@@ -164,27 +166,37 @@
     back.classList.add("is-back");
     later(function () {
       back.classList.remove("is-back");
-    }, 400);
+    }, 350);
     if (ready()) burst(audio.currentTime, 0.06, "lowpass", 700, 0.8, 0.12);
+    if (resetViewer && vBody) {
+      vTitle.textContent = "A:\\ \u2014 Project Viewer";
+      vStatus.textContent = "Ready \u2014 Disk ejected";
+      vBody.innerHTML = emptyHTML;
+    }
+  }
+  if (ejectBtn) {
+    on(ejectBtn, "click", function () {
+      if (!busy && current) eject(true);
+    });
   }
   function show(d) {
     var tpl = root.querySelector('template[data-project="' + d.getAttribute("data-disk") + '"]');
     var name = (d.querySelector(".disk-title") || {}).textContent || "";
     vTitle.textContent = "A:\\ " + name.trim();
-    vStatus.textContent = "Reading drive A:";
-    vBody.innerHTML = '<p class="viewer-reading">Reading disk&hellip;<span class="bar"><i></i></span></p>';
+    vStatus.textContent = "Reading drive A: ...";
+    vBody.innerHTML = '<p class="viewer-reading">Reading disk in Drive A:&hellip;<span class="bar"><i></i></span></p>';
     later(
       function () {
         vBody.innerHTML = "";
         if (tpl) vBody.appendChild(document.importNode(tpl.content, true));
-        vStatus.textContent = "Ready";
+        vStatus.textContent = "Ready \u2014 " + name.trim();
         drive.classList.remove("is-loading");
         busy = false;
       },
-      reduce ? 0 : 750
+      reduce ? 0 : 700
     );
     // on narrow screens the window sits below the box
-    if (window.innerWidth <= 860 && viewer.scrollIntoView) viewer.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    if (window.innerWidth <= 920 && viewer.scrollIntoView) viewer.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }
   function insert(d) {
     if (busy || d === current) return;
@@ -192,14 +204,15 @@
     disks.forEach(function (o) {
       o.classList.remove("is-up");
     });
-    eject();
+    eject(false);
     if (reduce || !Element.prototype.animate) {
       current = d;
       d.style.visibility = "hidden";
       show(d);
       return;
     }
-    var r = d.getBoundingClientRect(),
+    var card = d.querySelector(".disk-card") || d;
+    var r = card.getBoundingClientRect(),
       s = slot.getBoundingClientRect();
     if (fly && fly.parentNode) fly.parentNode.removeChild(fly);
     fly = d.cloneNode(true);
@@ -218,11 +231,11 @@
       ty = s.top + s.height / 2 - r.bottom;
     var a = fly.animate(
       [
-        { transform: "translate(0,0) scale(1) rotate(-1.2deg)" },
-        { transform: "translate(" + tx + "px," + (ty - 30) + "px) scale(" + sc + ") rotate(0deg)", offset: 0.75 },
+        { transform: "translate(0,0) scale(1)" },
+        { transform: "translate(" + tx + "px," + (ty - 28) + "px) scale(" + sc + ")", offset: 0.75 },
         { transform: "translate(" + tx + "px," + ty + "px) scale(" + sc + ")" },
       ],
-      { duration: 520, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }
+      { duration: 460, easing: "steps(10)", fill: "forwards" }
     );
     a.onfinish = function () {
       if (dead) return;
@@ -234,7 +247,7 @@
           { transform: "translate(" + tx + "px," + ty + "px) scale(" + sc + ")", clipPath: "inset(0 0 0 0)" },
           { transform: "translate(" + tx + "px," + (ty + r.height * sc) + "px) scale(" + sc + ")", clipPath: "inset(0 0 100% 0)" },
         ],
-        { duration: 260, easing: "ease-in", fill: "forwards" }
+        { duration: 220, easing: "steps(6)", fill: "forwards" }
       );
       b.onfinish = function () {
         if (fly && fly.parentNode) fly.parentNode.removeChild(fly);

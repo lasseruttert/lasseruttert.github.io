@@ -1,12 +1,13 @@
 /*******************************************************************************
- * About page: one big old CRT monitor showing a retro desktop with a chat window.
+ * About page: a pixel-art CRT monitor showing a retro desktop with a chat window.
  * desk.js reveals the messages while the page scrolls; the monitor stays put.
  ******************************************************************************/
 
 body.bg-desk {
-  --desk-room: #161412;
+  --desk-room: #141210;
   background: var(--desk-room);
   padding-top: 0 !important;
+  padding-bottom: 0 !important;
   overflow-x: hidden;
 
   > header,
@@ -23,195 +24,256 @@ body.bg-desk {
 
 .desk {
   position: relative;
-  // one screen to look at, then some scrolling for every message
-  height: calc(100vh + var(--n, 8) * 16vh);
+  height: calc(100vh + var(--n, 8) * 14vh);
   font-family: "Pixelify Sans", "Courier New", monospace;
+  image-rendering: pixelated;
 }
 
-/* ---------------------------------------------------------------- the monitor */
+/* ---------------------------------------------------------------- the pixel CRT monitor */
 .crt {
   position: sticky;
   top: 0;
   height: 100vh;
   height: 100dvh;
-  padding: 2.4vmin 2.4vmin 3.4vmin;
-  display: flex;
-  // the screen lights up the room behind the monitor
-  background: radial-gradient(ellipse 70% 60% at 50% 46%, rgba(60, 200, 185, 0.22), transparent 75%);
-}
-// the plastic case: lit from above, its thickness showing at the bottom
-.crt-bezel {
-  flex: 1;
+  padding: 1.2vmin 2vmin 0.8vmin;
   display: flex;
   flex-direction: column;
-  padding: 2.6vmin 2.8vmin 0;
-  border-radius: 38px / 34px;
+  align-items: center;
+  justify-content: center;
+  // subtle phosphor glow on the wall behind the monitor + desk surface at bottom
   background:
-    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255, 255, 255, 0.45), transparent 70%),
-    linear-gradient(90deg, rgba(90, 72, 36, 0.16), transparent 7%, transparent 93%, rgba(90, 72, 36, 0.22)),
-    linear-gradient(180deg, #ebe4cf 0%, #dcd3b9 50%, #c9bf9f 100%);
-  box-shadow:
-    inset 0 3px 0 rgba(255, 255, 255, 0.8),
-    inset 3px 0 0 rgba(255, 255, 255, 0.35),
-    inset -3px 0 0 rgba(90, 72, 36, 0.25),
-    inset 0 -4px 0 rgba(90, 72, 36, 0.35),
-    0 1.2vmin 0 #a99e7c,
-    0 1.4vmin 0 #8a7f60,
-    0 2vmin 2.4vmin rgba(0, 0, 0, 0.55),
-    0 3vmin 8vmin rgba(0, 0, 0, 0.6),
-    0 0 12vmin rgba(60, 200, 185, 0.12);
+    linear-gradient(180deg, transparent 0%, transparent 91%, #231d17 91%, #1b1612 100%),
+    radial-gradient(ellipse 68% 58% at 50% 44%, rgba(56, 196, 180, 0.18), transparent 75%);
 }
-// the recess the tube sits in: one smooth slope, shaded at the top, lit at the bottom
+
+// outer plastic casing with stepped pixel corners and hard pixel bevels
+.crt-bezel {
+  width: min(1180px, 96vw);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 0;
+  border-radius: 0;
+  background:
+    // top ventilation slots
+    repeating-linear-gradient(90deg, transparent 0 10px, #8e856d 10px 14px) 50% 5px / 240px 4px no-repeat,
+    #ddd5bf;
+  border: 4px solid #1c1a16;
+  box-shadow:
+    inset 4px 4px 0 #f4efe0,
+    inset -4px -4px 0 #9e957c,
+    0 4px 0 #8a8168,
+    0 8px 0 #1c1a16,
+    0 12px 0 rgba(0, 0, 0, 0.45);
+}
+
+// inner sloped recess holding the glass tube
 .crt-recess {
   flex: 1;
   display: flex;
   min-height: 0;
-  padding: 2vmin 2.2vmin 2.4vmin;
-  border-radius: 30px / 26px;
-  background: linear-gradient(180deg, #a39978 0%, #c4baa0 30%, #ddd5bd 70%, #efe9d6 100%);
+  padding: 10px 12px;
+  border-radius: 0;
+  background: #a9a086;
+  border: 4px solid #6b634e;
   box-shadow:
-    inset 0 3px 6px rgba(60, 48, 20, 0.45),
-    inset 0 -2px 0 rgba(255, 255, 255, 0.55),
-    0 -1px 0 rgba(255, 255, 255, 0.6),
-    0 1px 0 rgba(90, 72, 36, 0.4);
+    inset 4px 4px 0 #554e3c,
+    inset -4px -4px 0 #efe9d6,
+    2px 2px 0 #f4efe0;
 }
+
 .crt-screen {
   position: relative;
   flex: 1;
   overflow: hidden;
-  border-radius: 20px / 17px;
-  background: #050605;
-  // a thin dark rim, and the tube's light falling onto the slope
+  border-radius: 0;
+  background: #050707;
+  border: 4px solid #181714;
   box-shadow:
-    0 0 0 3px #1d1b16,
-    0 0 0 4px rgba(255, 255, 255, 0.25),
-    0 0 2.4vmin 0.6vmin rgba(70, 230, 210, 0.32);
+    inset 0 0 0 2px #0b2e2c,
+    0 0 16px rgba(64, 215, 198, 0.25);
 }
-// bloom: the brightest parts of the picture glow a little
+
 .crt-screen::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: inherit;
-  background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(220, 255, 250, 0.1), transparent 70%);
+  background: radial-gradient(ellipse 65% 60% at 50% 45%, rgba(210, 255, 248, 0.06), transparent 72%);
   mix-blend-mode: screen;
 }
+
 .crt-glass {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: inherit;
   background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px),
-    radial-gradient(ellipse at 28% 18%, rgba(255, 255, 255, 0.13), transparent 38%),
-    radial-gradient(ellipse at 50% 50%, transparent 65%, rgba(0, 0, 0, 0.45) 100%);
-  box-shadow:
-    inset 0 0 70px rgba(0, 0, 0, 0.6),
-    inset 0 0 12px rgba(0, 0, 0, 0.9);
-  animation: crt-hum 7s infinite steps(1);
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, transparent 28%),
+    radial-gradient(ellipse at 50% 50%, transparent 72%, rgba(0, 0, 0, 0.38) 100%);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55);
 }
-@keyframes crt-hum {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  41% {
-    opacity: 0.93;
-  }
-  42% {
-    opacity: 1;
-  }
-  77% {
-    opacity: 0.96;
-  }
-}
+
 .crt-chin {
-  height: 8.5vmin;
-  min-height: 34px;
+  height: 44px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2.4vmin;
-  color: #8c8268;
+  padding: 0 8px 4px;
+  color: #4f493a;
 }
+
 .crt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
-  letter-spacing: 0.2em;
-  font-size: clamp(0.7rem, 1.6vmin, 1rem);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.16em;
+  font-size: 13px;
+  color: #4b4537 !important;
+  padding: 2px 8px;
+  background: #cfc6ae;
+  border: 2px solid;
+  border-color: #9e957c #f4efe0 #f4efe0 #9e957c;
 }
+
+// tiny pixel RGB stripe badge
+.crt-badge {
+  display: inline-block;
+  width: 12px;
+  height: 10px;
+  background: linear-gradient(90deg, #d9383a 0 4px, #38a852 4px 8px, #2b66d9 8px 12px);
+  box-shadow: 1px 1px 0 #1c1a16;
+}
+
+.crt-vents {
+  flex: 1;
+  max-width: 220px;
+  height: 10px;
+  margin: 0 16px;
+  background: repeating-linear-gradient(90deg, #8e856d 0 4px, #f4efe0 4px 6px, transparent 6px 12px);
+}
+
 .crt-knobs {
   display: flex;
   align-items: center;
-  gap: 1.4vmin;
+  gap: 10px;
   i {
-    width: 2.2vmin;
-    height: 2.2vmin;
-    min-width: 10px;
-    min-height: 10px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #efe8d4, #a89e80);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    width: 16px;
+    height: 10px;
+    border-radius: 0;
+    background: repeating-linear-gradient(90deg, #b8af96 0 2px, #7d755e 2px 4px);
+    border: 2px solid #3b362a;
+    box-shadow: 0 2px 0 #f4efe0;
   }
 }
+
+.crt-power {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 22px;
+  background: #d2c9b0;
+  border: 2px solid;
+  border-color: #f4efe0 #6b634e #6b634e #f4efe0;
+  box-shadow: 2px 2px 0 #1c1a16;
+}
+
 .crt-led {
-  width: 1.2vmin;
-  height: 1.2vmin;
-  min-width: 6px;
-  min-height: 6px;
-  border-radius: 50%;
-  background: #5dff7a;
-  box-shadow: 0 0 8px #5dff7a;
+  width: 10px;
+  height: 6px;
+  border-radius: 0;
+  background: #35ff5c;
+  border: 1px solid #0e4a1a;
+  box-shadow: 0 0 6px #35ff5c;
+}
+
+// pixel monitor stand neck & swivel base
+.crt-stand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+}
+.crt-neck {
+  width: 180px;
+  height: 12px;
+  background: repeating-linear-gradient(180deg, #b5ac93 0 4px, #968d74 4px 8px);
+  border-left: 4px solid #1c1a16;
+  border-right: 4px solid #1c1a16;
+  box-shadow:
+    inset 4px 0 0 #d6ceb6,
+    inset -4px 0 0 #756d58;
+}
+.crt-base {
+  width: 320px;
+  height: 14px;
+  background: #cfc7b0;
+  border: 4px solid #1c1a16;
+  box-shadow:
+    inset 4px 2px 0 #f4efe0,
+    inset -4px -2px 0 #8e856d,
+    0 4px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* ---------------------------------------------------------------- the desktop */
 .os {
+  --global-text-color: #111111;
+  --global-theme-color: #0a246a;
   position: absolute;
   inset: 0;
-  background: #0f7c78;
-  background-image: radial-gradient(ellipse at 50% 40%, #179088, #0c6a66 75%);
-  color: #000;
+  // classic Win95 teal with subtle pixel dither
+  background-color: #008080;
+  background-image: radial-gradient(#0b8e8e 1px, transparent 0), radial-gradient(#007272 1px, transparent 0);
+  background-size: 4px 4px;
+  background-position:
+    0 0,
+    2px 2px;
+  color: #111111;
   font-size: 15px;
-  // a hint of phosphor glow
-  filter: contrast(1.05) saturate(1.08);
   text-shadow: none;
   * {
     font-family: "Pixelify Sans", "Courier New", monospace;
   }
 }
 
-// raised grey 3D button
+// raised grey 3D pixel button
 .btn95 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 14px;
+  padding: 3px 12px;
   background: #c3c3c3;
-  color: #000 !important;
+  color: #000000 !important;
   text-decoration: none !important;
   border: 2px solid;
-  border-color: #fff #3d3d3d #3d3d3d #fff;
-  box-shadow: inset -1px -1px 0 #808080;
+  border-color: #ffffff #2b2b2b #2b2b2b #ffffff;
+  box-shadow:
+    inset -1px -1px 0 #808080,
+    inset 1px 1px 0 #dfdfdf;
   cursor: pointer;
   &:hover {
-    background: #cfcfcf;
+    background: #d2d2d2;
+    color: #000000 !important;
   }
   &:active {
-    border-color: #3d3d3d #fff #fff #3d3d3d;
+    border-color: #2b2b2b #ffffff #ffffff #2b2b2b;
     box-shadow: inset 1px 1px 0 #808080;
   }
   &.is-disabled {
-    color: #808080 !important;
-    text-shadow: 1px 1px 0 #fff;
+    color: #6e6e6e !important;
+    text-shadow: 1px 1px 0 #ffffff;
     cursor: default;
   }
 }
 
 .os-icons {
   position: absolute;
-  top: 18px;
-  left: 14px;
+  top: 14px;
+  left: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -224,38 +286,43 @@ body.bg-desk {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 84px;
+  width: 82px;
   gap: 4px;
-  color: #fff !important;
+  color: #ffffff !important;
   text-decoration: none !important;
   svg {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    image-rendering: pixelated;
   }
   span {
-    padding: 0 3px;
-    font-size: 14px;
-    text-shadow: 1px 1px 0 #000;
+    padding: 1px 4px;
+    font-size: 13px;
+    color: #ffffff !important;
+    text-shadow: 1px 1px 0 #000000;
   }
   &:hover span,
   &:focus span {
     background: #0a246a;
-    outline: 1px dotted #fff;
+    color: #ffffff !important;
+    outline: 1px dotted #ffff55;
   }
 }
 
 /* ---------------------------------------------------------------- windows */
 .win {
+  --global-text-color: #111111;
   position: absolute;
   display: flex;
   flex-direction: column;
   background: #c3c3c3;
+  color: #111111;
   border: 2px solid;
-  border-color: #dfdfdf #000 #000 #dfdfdf;
+  border-color: #ffffff #111111 #111111 #ffffff;
   box-shadow:
-    inset 1px 1px 0 #fff,
+    inset 1px 1px 0 #dfdfdf,
     inset -1px -1px 0 #808080,
-    6px 8px 0 rgba(0, 0, 0, 0.25);
+    4px 4px 0 rgba(0, 0, 0, 0.45);
   padding: 3px;
 }
 .win-title {
@@ -263,21 +330,27 @@ body.bg-desk {
   align-items: center;
   gap: 6px;
   padding: 3px 4px 3px 6px;
-  background: linear-gradient(90deg, #0a246a, #3a6ea5);
-  color: #fff;
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  color: #ffffff !important;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
+  span,
+  b {
+    color: #ffffff;
+  }
 }
 .win-dot {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   background: #ffd24a;
+  border: 1px solid #000;
   box-shadow:
-    inset -2px -2px 0 #c99a12,
-    inset 2px 2px 0 #fff3b0;
+    inset 1px 1px 0 #fff3b0,
+    inset -1px -1px 0 #c99a12;
 }
 .win-name {
   flex: 1;
+  color: #ffffff !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -286,113 +359,135 @@ body.bg-desk {
   display: flex;
   gap: 2px;
   b {
-    width: 20px;
-    height: 18px;
+    width: 18px;
+    height: 16px;
     display: grid;
     place-items: center;
     background: #c3c3c3;
-    color: #000;
-    font-size: 12px;
+    color: #000000 !important;
+    font-size: 11px;
     line-height: 1;
     border: 2px solid;
-    border-color: #fff #3d3d3d #3d3d3d #fff;
+    border-color: #ffffff #2b2b2b #2b2b2b #ffffff;
   }
 }
 .win-menu {
   display: flex;
   gap: 14px;
-  padding: 3px 8px;
-  font-size: 14px;
-  span::first-letter {
-    text-decoration: underline;
+  padding: 2px 8px;
+  font-size: 13px;
+  color: #111111 !important;
+  border-bottom: 1px solid #808080;
+  span {
+    color: #111111 !important;
+    &::first-letter {
+      text-decoration: underline;
+    }
   }
 }
 
 .chat {
-  top: 4.5%;
-  bottom: 56px;
-  left: max(120px, calc(50% - 400px));
-  width: min(800px, calc(100% - 150px));
+  top: 10px;
+  bottom: 42px;
+  left: max(106px, calc(50% - 430px));
+  width: min(880px, calc(100% - 122px));
 }
+
 .chat-head {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 2px 2px 0;
-  padding: 8px 12px;
-  background: #f7f7f9;
+  padding: 5px 10px;
+  background: #e8ecf2;
   border: 2px solid;
-  border-color: #808080 #fff #f7f7f9 #808080;
-  border-bottom: 1px solid #d8d8de;
-  color: #111;
+  border-color: #808080 #ffffff #d0d5de #808080;
+  color: #111111 !important;
   .avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(135deg, #2bb3a8, #1a7f9c);
-    color: #fff;
-    font-weight: 700;
-    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 0;
+    border: 2px solid #111111;
+    box-shadow: 2px 2px 0 #808080;
+    display: block;
+    overflow: hidden;
+    flex-shrink: 0;
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+  .chat-who {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
   }
   .name {
     font-weight: 700;
+    font-size: 15px;
+    color: #0a246a !important;
     line-height: 1.1;
   }
   .status {
     font-size: 12px;
-    color: #2e9c4d;
+    color: #1b7a34 !important;
+    font-weight: 600;
   }
 }
+
 .chat-body {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 5px;
   overflow-y: auto;
-  margin: 0 2px 6px;
-  padding: 14px 14px 10px;
-  background: #fff;
+  margin: 0 2px 4px;
+  padding: 10px 12px 8px;
+  background: #ffffff;
+  color: #111111 !important;
   border: 2px solid;
-  border-color: #f7f7f9 #fff #fff #808080;
+  border-color: #808080 #ffffff #ffffff #808080;
   border-top: 0;
-  font-size: clamp(15px, 1.15vw + 6px, 19px);
-  line-height: 1.4;
+  font-size: clamp(13px, 0.78vw + 6px, 15.5px);
+  line-height: 1.32;
   scroll-behavior: smooth;
 }
-// incoming text bubbles
+
+// incoming pixel-art chat bubbles — high contrast dark text on light pixel box
 .msg {
   position: relative;
-  max-width: min(78%, 560px);
-  margin: 0 0 0 8px;
-  padding: 8px 13px 9px;
-  border-radius: 18px;
-  background: #e6e6eb;
-  color: #111;
-  // the little tail at the bottom left
+  max-width: min(90%, 740px);
+  margin: 0 0 0 6px;
+  padding: 5px 10px 6px;
+  border-radius: 0;
+  background: #edf1f7;
+  color: #111111 !important;
+  border: 2px solid #263040;
+  box-shadow: 2px 2px 0 #b8c2d4;
+
+  // pixel-stepped speech tail on the left
   &::before {
     content: "";
     position: absolute;
     left: -6px;
-    bottom: 0;
-    width: 16px;
-    height: 14px;
-    background: #e6e6eb;
-    border-bottom-right-radius: 14px 12px;
+    bottom: 4px;
+    width: 6px;
+    height: 6px;
+    background: #edf1f7;
+    border-left: 2px solid #263040;
+    border-bottom: 2px solid #263040;
   }
-  &::after {
-    content: "";
-    position: absolute;
-    left: -10px;
-    bottom: 0;
-    width: 10px;
-    height: 14px;
-    background: #fff;
-    border-bottom-right-radius: 10px;
+
+  .txt {
+    color: #111111 !important;
+    font-weight: 500;
   }
-  // the sender's name is there for screen readers and search engines, the header shows it
+
+  // sender label hidden visually, kept for screen readers
   .who {
     position: absolute;
     width: 1px;
@@ -402,21 +497,24 @@ body.bg-desk {
     white-space: nowrap;
   }
 }
+
 .typing {
   display: none;
   position: relative;
-  margin: 0 0 0 8px;
-  padding: 12px 14px;
-  border-radius: 18px;
-  background: #e6e6eb;
+  margin: 0 0 0 6px;
+  padding: 7px 12px;
+  border-radius: 0;
+  background: #edf1f7;
+  border: 2px solid #263040;
+  box-shadow: 2px 2px 0 #b8c2d4;
   i {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     margin: 0 2px;
-    border-radius: 50%;
-    background: #8e8e93;
-    animation: typing-dot 1.2s infinite;
+    border-radius: 0;
+    background: #263040;
+    animation: typing-dot 1s infinite steps(2);
     &:nth-child(2) {
       animation-delay: 0.18s;
     }
@@ -434,62 +532,87 @@ body.bg-desk {
   }
   30% {
     opacity: 1;
-    transform: translateY(-4px);
+    transform: translateY(-3px);
   }
 }
-// the visitor's possible replies: outgoing blue bubbles on the right
+
+// visitor replies: compact horizontal row of pixel buttons on the right
 .chat-options {
-  align-self: flex-end;
+  align-self: stretch;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  margin: 10px 0 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 4px 0 2px;
+  padding-top: 6px;
+  border-top: 2px dashed #d4dae4;
+
   .reply-note {
-    font-size: 12px;
-    color: #8e8e93;
+    font-size: 13px;
+    font-weight: 700;
+    color: #3a4659 !important;
+  }
+  .reply-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
   }
   a {
-    padding: 7px 14px 8px;
-    border-radius: 18px;
-    background: #2f7cf6;
-    color: #fff !important;
+    padding: 4px 12px 5px;
+    border-radius: 0;
+    background: #1858c8;
+    color: #ffffff !important;
+    font-weight: 700;
     text-decoration: none !important;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+    border: 2px solid #081e4a;
+    box-shadow:
+      inset 2px 2px 0 #5b96f7,
+      2px 2px 0 #081e4a;
     transition:
-      transform 0.12s ease,
-      background 0.12s ease;
+      transform 0.08s steps(2),
+      background 0.08s;
     &:hover,
     &:focus {
-      background: #1f66d8;
-      transform: translateX(-3px);
+      background: #246be3;
+      color: #ffffff !important;
+      transform: translate(-1px, -1px);
+      box-shadow:
+        inset 2px 2px 0 #7db0ff,
+        3px 3px 0 #081e4a;
+    }
+    &:active {
+      transform: translate(1px, 1px);
+      box-shadow: none;
     }
   }
 }
-// a new bubble pops in
+
 .desk.js .msg.is-shown,
 .desk.js .typing.is-on,
 .desk.js .chat-options.is-shown a {
-  animation: bubble-in 0.22s ease-out;
+  animation: bubble-in 0.16s steps(3);
 }
 @keyframes bubble-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.96);
+    transform: translateY(4px);
   }
 }
+
 .chat-input {
   display: flex;
   gap: 6px;
   padding: 0 2px 2px;
   .field {
     flex: 1;
-    padding: 5px 8px;
-    background: #fff;
-    color: #6b6b6b;
+    padding: 4px 8px;
+    background: #ffffff;
+    color: #333333 !important;
+    font-size: 13px;
     border: 2px solid;
-    border-color: #808080 #fff #fff #808080;
-    box-shadow: inset 1px 1px 0 #000;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #000000;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -502,46 +625,54 @@ body.bg-desk {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 42px;
+  height: 34px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 6px;
+  padding: 3px 6px;
   background: #c3c3c3;
-  border-top: 2px solid #fff;
+  border-top: 2px solid #ffffff;
   box-shadow: inset 0 1px 0 #dfdfdf;
   z-index: 2;
+  span {
+    color: #111111 !important;
+  }
 }
 .os-start {
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 2px 10px;
+  font-size: 14px;
 }
-// a tiny pixel monitor
 .os-logo {
   width: 16px;
-  height: 15px;
+  height: 14px;
   background:
-    linear-gradient(#1aa39c, #1aa39c) 2px 2px / 12px 8px no-repeat,
-    linear-gradient(#6f6957, #6f6957) 5px 12px / 6px 3px no-repeat,
-    linear-gradient(#e4ddc8, #e4ddc8) 0 0 / 16px 12px no-repeat;
-  box-shadow: 1px 1px 0 #000;
+    linear-gradient(#1aa39c, #1aa39c) 2px 2px / 12px 7px no-repeat,
+    linear-gradient(#6f6957, #6f6957) 5px 11px / 6px 3px no-repeat,
+    linear-gradient(#e4ddc8, #e4ddc8) 0 0 / 16px 11px no-repeat;
+  box-shadow: 1px 1px 0 #000000;
 }
 .os-task {
-  padding: 3px 10px;
+  padding: 2px 10px;
   max-width: 220px;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   border: 2px solid;
-  border-color: #3d3d3d #fff #fff #3d3d3d;
+  border-color: #2b2b2b #ffffff #ffffff #2b2b2b;
   background: repeating-conic-gradient(#dcdcdc 0 25%, #c3c3c3 0 50%) 0 0 / 2px 2px;
   font-weight: 700;
+  color: #000000 !important;
 }
 .os-tray {
   margin-left: auto;
-  padding: 3px 10px;
-  border: 1px solid;
-  border-color: #808080 #fff #fff #808080;
+  padding: 2px 10px;
+  font-size: 13px;
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  background: #b8b8b8;
+  color: #000000 !important;
 }
 
 /* ---------------------------------------------------------------- with JavaScript: reveal step by step */
@@ -564,25 +695,29 @@ body.bg-desk {
 }
 
 /* ---------------------------------------------------------------- small screens */
-@media (max-width: 700px) {
+@media (max-width: 720px) {
   .crt {
-    padding: 8px;
+    padding: 6px 4px 2px;
   }
   .crt-bezel {
-    padding: 12px 12px 0;
-    border-radius: 20px / 18px;
+    width: 98vw;
+    padding: 8px 8px 0;
   }
-  .crt-screen {
-    border-radius: 16px / 14px;
+  .crt-recess {
+    padding: 6px;
+  }
+  .crt-vents,
+  .crt-stand {
+    display: none;
   }
   .os-icons {
     display: none;
   }
   .chat {
-    top: 10px;
-    left: 8px;
-    width: calc(100% - 16px);
-    bottom: 50px;
+    top: 6px;
+    left: 6px;
+    width: calc(100% - 12px);
+    bottom: 38px;
   }
   .win-menu {
     display: none;

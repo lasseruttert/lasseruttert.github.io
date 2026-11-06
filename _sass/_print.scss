@@ -1,13 +1,17 @@
 /*******************************************************************************
- * Experience: a CV printing out of an old dot-matrix printer. The printer sits at
- * the bottom of the screen and the paper rises out of it while the page scrolls.
+ * Experience: a CV printing out of a pixel-art 24-pin dot-matrix printer.
+ * The printer stays fixed at the bottom of the screen while the paper feeds up.
  ******************************************************************************/
 
 body.bg-print {
   --global-theme-color: #e9c46a;
   --global-hover-color: #ffdf8e;
   --global-text-color: #efe8d6;
-  background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255, 220, 160, 0.08), transparent 70%), linear-gradient(180deg, #1c1a17, #121110);
+  padding-bottom: 0 !important;
+  overflow-x: hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 100%, rgba(255, 214, 145, 0.1), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 4px), linear-gradient(180deg, #1b1916 0%, #12100e 100%);
   > footer {
     display: none;
   }
@@ -20,257 +24,455 @@ body.bg-print {
 }
 
 .printout {
-  --paper-w: min(780px, calc(100vw - 28px));
-  --lh: 1.55em;
-  --printer-h: 170px;
+  --paper-w: min(820px, calc(100vw - 24px));
+  --lh: 1.6em;
+  --printer-h: 176px;
   position: relative;
-  // the paper starts inside the printer: its top edge sits in the slot, and
-  // scrolling pushes it out line by line
-  padding-top: calc(100vh - var(--printer-h) + 30px);
-  font-family: "DotGothic16", "Courier New", monospace;
+  // start with the header and top section already emerging from the printer slot
+  padding-top: 22vh;
+  font-family: "DotGothic16", "Pixelify Sans", "Courier New", monospace;
+  image-rendering: pixelated;
 }
+
 .print-hint {
   position: fixed;
-  left: 0;
-  right: 0;
-  top: 38vh;
-  text-align: center;
-  color: #b9b09a;
-  font-family: "Pixelify Sans", monospace;
-  font-size: 1.1rem;
-  letter-spacing: 0.08em;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--printer-h) + 14px);
+  z-index: 4;
+  margin: 0;
   pointer-events: none;
-  transition: opacity 0.4s;
-  animation: hint-bob 1.6s ease-in-out infinite;
+  transition: opacity 0.25s steps(3);
+  animation: hint-bob 1.2s steps(2) infinite;
+
+  span {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #1c1a16;
+    color: #ffdf8e !important;
+    font-family: "Pixelify Sans", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    border: 2px solid #e9c46a;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.65);
+  }
 }
 .printout.is-going .print-hint {
   opacity: 0;
 }
 @keyframes hint-bob {
   50% {
-    transform: translateY(6px);
+    transform: translate(-50%, 4px);
   }
 }
 
-/* ---------------------------------------------------------------- the paper */
+/* ---------------------------------------------------------------- the tractor-feed paper */
 .paper {
+  --global-text-color: #14131a;
+  --global-theme-color: #0b2e8a;
   position: relative;
+  z-index: 2;
   width: var(--paper-w);
   margin: 0 auto;
-  padding: 0 46px;
-  color: #23222a;
-  // continuous form paper: punched strips on both sides, faint green bars every two lines
+  padding: 0 52px;
+  color: #14131a !important;
+  // continuous tractor-feed paper: crisp square/pixel pin holes on both sides, perforated margin lines, green-bar stripes
   background:
-    radial-gradient(circle at 50% 50%, #1c1a17 0 5px, transparent 5.5px) left 13px top 9px / 20px 24px repeat-y,
-    radial-gradient(circle at 50% 50%, #1c1a17 0 5px, transparent 5.5px) right 13px top 9px / 20px 24px repeat-y,
-    linear-gradient(
-      90deg,
-      transparent 38px,
-      rgba(0, 0, 0, 0.12) 38px 39px,
-      transparent 39px calc(100% - 39px),
-      rgba(0, 0, 0, 0.12) calc(100% - 39px) calc(100% - 38px),
-      transparent calc(100% - 38px)
-    ),
-    repeating-linear-gradient(180deg, rgba(150, 205, 160, 0.2) 0 calc(var(--lh) * 2), transparent calc(var(--lh) * 2) calc(var(--lh) * 4)),
-    #f6f3e8;
+    repeating-linear-gradient(180deg, transparent 0 8px, #191714 8px 16px, transparent 16px 24px) left 14px top 0 / 10px 24px repeat-y,
+    repeating-linear-gradient(180deg, transparent 0 8px, #191714 8px 16px, transparent 16px 24px) right 14px top 0 / 10px 24px repeat-y,
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 4px, transparent 4px 8px) left 38px top 0 / 2px 8px repeat-y,
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 4px, transparent 4px 8px) right 38px top 0 / 2px 8px repeat-y,
+    repeating-linear-gradient(180deg, rgba(120, 190, 138, 0.24) 0 calc(var(--lh) * 2), #f7f4e9 calc(var(--lh) * 2) calc(var(--lh) * 4)),
+    #f7f4e9;
   background-origin: border-box;
+  border-left: 3px solid #191714;
+  border-right: 3px solid #191714;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.15),
-    0 10px 40px rgba(0, 0, 0, 0.55);
-  // a torn top edge
+    inset 3px 0 0 #ffffff,
+    inset -3px 0 0 #d8d1be,
+    8px 0 0 rgba(0, 0, 0, 0.45),
+    -8px 0 0 rgba(0, 0, 0, 0.45);
+
+  // pixel-stepped torn top edge
   &::before {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
-    top: -6px;
-    height: 7px;
+    left: -3px;
+    right: -3px;
+    top: -8px;
+    height: 8px;
     background:
-      linear-gradient(135deg, transparent 50%, #f6f3e8 50%) 0 0 / 8px 7px repeat-x,
-      linear-gradient(225deg, transparent 50%, #f6f3e8 50%) 4px 0 / 8px 7px repeat-x;
+      linear-gradient(90deg, #191714 0 3px, transparent 3px),
+      repeating-linear-gradient(90deg, #f7f4e9 0 6px, transparent 6px 12px) 0 4px / 12px 4px repeat-x,
+      repeating-linear-gradient(90deg, transparent 0 6px, #f7f4e9 6px 12px) 0 0 / 12px 4px repeat-x;
   }
 }
+
 .sheet {
-  padding: 2.2rem 0 calc(170px + 4rem);
-  font-size: clamp(14px, 1.15vw + 7px, 18px);
+  --global-text-color: #14131a;
+  padding: 2rem 0 calc(var(--printer-h) + 4.5rem);
+  font-size: clamp(14.5px, 1.05vw + 7px, 17.5px);
   line-height: var(--lh);
   letter-spacing: 0.02em;
-  // ink: slightly soft, a little uneven
-  text-shadow:
-    0.4px 0 0 rgba(35, 34, 42, 0.55),
-    0 0 0.6px rgba(35, 34, 42, 0.5);
+  color: #14131a !important;
+  // crisp dark dot-matrix ribbon ink
+  text-shadow: 0.5px 0 0 rgba(20, 19, 26, 0.35);
 
   h1,
   h2,
   h3,
   p,
   ul,
-  li {
+  li,
+  span,
+  strong,
+  em {
     font-family: inherit;
     font-size: 1em;
-    font-weight: 400;
     line-height: var(--lh);
     margin: 0;
     letter-spacing: inherit;
-    color: inherit;
+    color: #14131a !important;
   }
+
   h1 {
-    font-size: 1.6em;
+    font-size: 1.65em;
+    font-weight: 700;
     line-height: calc(var(--lh) * 1.25);
-    letter-spacing: 0.12em;
-    margin: 0.2em 0;
+    letter-spacing: 0.14em;
+    margin: 0.15em 0;
+    color: #0d0c12 !important;
   }
+
   h2 {
     margin-top: var(--lh);
-    letter-spacing: 0.25em;
+    font-size: 1.15em;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: #0d0c12 !important;
   }
+
   h3 {
     margin-top: var(--lh);
+    font-weight: 700;
+    color: #0d0c12 !important;
   }
-  .meta,
-  .meta a {
-    color: #4a4860;
+
+  .meta-head {
+    font-weight: 700;
+    color: #2c334a !important;
+    letter-spacing: 0.08em;
   }
-  a {
-    color: inherit;
-    text-decoration: underline;
-    text-decoration-style: dotted;
-  }
-  ul {
-    padding-left: 2ch;
-    list-style: none;
-    li::before {
-      content: "* ";
-      margin-left: -2ch;
+
+  .meta {
+    color: #2b3454 !important;
+    font-weight: 700;
+    margin-bottom: 0.15em;
+    a {
+      color: #0b2e8a !important;
+      font-weight: 700;
     }
   }
+
+  a {
+    color: #0b2e8a !important;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    &:hover {
+      background: #0b2e8a;
+      color: #f7f4e9 !important;
+      text-decoration: none;
+    }
+  }
+
+  ul {
+    padding-left: 2.2ch;
+    list-style: none;
+    li {
+      color: #14131a !important;
+      &::before {
+        content: "> ";
+        margin-left: -2.2ch;
+        font-weight: 700;
+        color: #0b2e8a;
+      }
+    }
+  }
+
   .center {
     text-align: center;
   }
-  // rows of characters filling the line
+
   .stars::before,
   .rule::before {
     display: block;
     overflow: hidden;
     white-space: nowrap;
-    content: "****************************************************************************************************";
+    font-weight: 700;
+    color: #2c334a;
+    content: "====================================================================================================";
   }
   .rule::before {
     content: "----------------------------------------------------------------------------------------------------";
   }
 }
-// the perforation between two pages
+
+// perforation between pages
 .tear {
   position: relative;
-  height: calc(var(--lh) * 2);
-  margin: var(--lh) -46px 0;
+  height: calc(var(--lh) * 1.8);
+  margin: var(--lh) -52px 0;
   &::before {
     content: "";
     position: absolute;
     left: 0;
     right: 0;
     top: 50%;
-    border-top: 2px dashed rgba(0, 0, 0, 0.22);
+    height: 2px;
+    background: repeating-linear-gradient(90deg, rgba(20, 19, 26, 0.4) 0 6px, transparent 6px 12px);
   }
 }
 
-/* ---------------------------------------------------------------- the printer */
+/* ---------------------------------------------------------------- the fixed pixel-art printer */
 .printer {
-  position: sticky;
+  position: fixed;
+  left: 50%;
   bottom: 0;
+  transform: translateX(-50%);
   z-index: 3;
-  width: min(940px, calc(100vw - 8px));
-  height: 170px;
-  margin: -170px auto 0;
+  width: min(980px, calc(100vw - 8px));
+  height: var(--printer-h);
   pointer-events: none;
+  image-rendering: pixelated;
 }
-.printer-lid {
+
+// sloped top deck with side louvers and smoked acrylic cover
+.printer-top {
   position: absolute;
-  left: 6%;
-  right: 6%;
+  left: 24px;
+  right: 24px;
   top: 0;
-  height: 34px;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(180deg, #efe9d6, #d9d0b5);
+  height: 36px;
+  display: flex;
+  align-items: stretch;
+  background: #dfd7c0;
+  border: 4px solid #181612;
+  border-bottom: 0;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.7),
-    0 -6px 18px rgba(0, 0, 0, 0.35);
+    inset 4px 4px 0 #f4efe0,
+    inset -4px 0 0 #968d74,
+    0 -6px 0 rgba(0, 0, 0, 0.35);
 }
+
+.printer-vents-top {
+  width: 68px;
+  margin: 6px 10px;
+  background: repeating-linear-gradient(180deg, #6e6754 0 3px, #f4efe0 3px 5px, transparent 5px 8px);
+}
+
+// smoked pixel-dithered acrylic lid over the paper slot
+.printer-lid {
+  flex: 1;
+  position: relative;
+  margin: 4px 6px 0;
+  background-color: rgba(42, 46, 52, 0.78);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 0);
+  background-size: 4px 4px;
+  border: 3px solid #2b2822;
+  border-bottom: 0;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: flex-end;
+  padding: 0 12px 4px;
+}
+
+// column ruler markings along the acrylic cover
+.printer-ruler {
+  display: block;
+  width: 100%;
+  height: 8px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 230, 170, 0.75) 0 2px, transparent 2px 40px) 0 0 / 100% 8px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 230, 170, 0.45) 0 1px, transparent 1px 8px) 0 4px / 100% 4px no-repeat;
+  border-bottom: 1px solid rgba(255, 230, 170, 0.55);
+}
+
+// dark throat slot where the paper emerges and the carriage head travels
 .printer-slot {
   position: absolute;
-  left: 3%;
-  right: 3%;
-  top: 26px;
-  height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #0d0c0a, #2b2822);
+  left: 12px;
+  right: 12px;
+  top: 32px;
+  height: 28px;
+  background: #141310;
+  border: 4px solid #181612;
   box-shadow:
-    inset 0 3px 6px rgba(0, 0, 0, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.5);
+    inset 0 4px 0 #070605,
+    inset 0 -2px 0 #3a362e;
 }
+
+// steel guide rail inside the slot
+.printer-rail {
+  position: absolute;
+  left: 44px;
+  right: 44px;
+  top: 10px;
+  height: 6px;
+  background: linear-gradient(180deg, #b8bec6 0 2px, #60656c 2px 4px, #2b2e33 4px 6px);
+}
+
+// left and right tractor-feed sprockets
+.tractor {
+  position: absolute;
+  top: 2px;
+  width: 26px;
+  height: 16px;
+  background:
+    repeating-linear-gradient(180deg, #e6dfc8 0 3px, #5c5646 3px 6px) 5px 0 / 16px 16px no-repeat,
+    #2e2b24;
+  border: 2px solid #000;
+  &.left {
+    left: 14px;
+  }
+  &.right {
+    right: 14px;
+  }
+}
+
+// pixel-art 24-pin print head carriage with orange warning stripe
 .printer-head {
   position: absolute;
   left: 0;
-  top: 3px;
-  width: 46px;
-  height: 16px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, #5b5a55, #2e2d29);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  top: 1px;
+  width: 52px;
+  height: 18px;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, #e07a24 0 8px, transparent 8px) 6px 3px / 8px 4px no-repeat,
+    repeating-linear-gradient(90deg, #22211e 0 3px, #47453f 3px 6px) 18px 2px / 26px 8px no-repeat,
+    #36342f;
+  border: 2px solid #090908;
+  box-shadow:
+    inset 2px 2px 0 #66635b,
+    inset -2px -2px 0 #1c1b18;
   will-change: transform;
 }
+
+// main front body of the printer
 .printer-front {
   position: absolute;
   left: 0;
   right: 0;
-  top: 44px;
+  top: 56px;
   bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 7%;
-  border-radius: 10px 10px 0 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 14%),
-    repeating-linear-gradient(90deg, transparent 0 7px, rgba(0, 0, 0, 0.04) 7px 8px), linear-gradient(180deg, #e2dac2, #c8be9e);
+  gap: 16px;
+  padding: 0 28px;
+  border-radius: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(0, 0, 0, 0.035) 7px 8px), #d6ceb6;
+  border: 4px solid #181612;
+  border-bottom: 0;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -6px 12px rgba(90, 72, 36, 0.3),
-    0 -2px 10px rgba(0, 0, 0, 0.4);
-  color: #7d7458;
+    inset 4px 4px 0 #f4efe0,
+    inset -4px 0 0 #8e856d,
+    inset 0 -10px 0 #9e957c,
+    0 -4px 0 rgba(0, 0, 0, 0.45);
+  color: #3d382c;
   font-family: "Pixelify Sans", monospace;
   font-size: 13px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
-.printer-name {
-  font-weight: 700;
-}
-.printer-leds {
-  display: flex;
+
+.printer-brand-box {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding: 4px 10px;
+  background: #c4bc9f;
+  border: 2px solid;
+  border-color: #8e856d #f4efe0 #f4efe0 #8e856d;
+}
+
+.printer-badge {
+  width: 14px;
+  height: 10px;
+  background: linear-gradient(90deg, #c93b2b 0 5px, #e09f24 5px 10px, #2b66c9 10px 14px);
+  box-shadow: 1px 1px 0 #181612;
+}
+
+.printer-name {
+  font-weight: 700;
+  color: #2e2a20 !important;
+}
+
+.printer-vents-front {
+  flex: 1;
+  max-width: 240px;
+  height: 22px;
+  background: repeating-linear-gradient(90deg, #78705a 0 4px, #ebe4cf 4px 6px, transparent 6px 12px);
+}
+
+// recessed membrane/pixel button control panel on the right
+.printer-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: #b5ad94;
+  border: 2px solid;
+  border-color: #6e6754 #f4efe0 #f4efe0 #6e6754;
+  box-shadow: inset 2px 2px 0 #8e856d;
+
+  .panel-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #2b271e !important;
+  }
+
   .led {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #3b4a3c;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.6);
-    margin-left: 10px;
+    width: 10px;
+    height: 6px;
+    border-radius: 0;
+    background: #2f3b2f;
+    border: 1px solid #141a14;
     &.on {
-      background: #63ff7d;
-      box-shadow: 0 0 8px #63ff7d;
+      background: #38ff62;
+      box-shadow: 0 0 6px #38ff62;
     }
   }
+
+  .panel-btn {
+    padding: 2px 7px;
+    background: #ded7c0;
+    color: #221f18 !important;
+    font-size: 11px;
+    font-weight: 700;
+    border: 2px solid;
+    border-color: #f4efe0 #5c5646 #5c5646 #f4efe0;
+    box-shadow: 1px 1px 0 #181612;
+  }
 }
+
+// stepped pixel platen knob on the right side
 .printer-knob {
   position: absolute;
-  right: 0.5%;
-  top: 18px;
-  width: 26px;
-  height: 40px;
-  border-radius: 8px;
-  background: repeating-linear-gradient(180deg, #4a4843 0 3px, #2e2c28 3px 5px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  right: -10px;
+  top: 22px;
+  width: 24px;
+  height: 44px;
+  border-radius: 0;
+  background: repeating-linear-gradient(180deg, #545149 0 4px, #2b2925 4px 8px);
+  border: 3px solid #12110e;
+  box-shadow:
+    inset 2px 0 0 #7a756a,
+    3px 3px 0 rgba(0, 0, 0, 0.55);
 }
 
 /* ---------------------------------------------------------------- with JavaScript: lines appear when printed */
@@ -278,30 +480,40 @@ body.bg-print {
   clip-path: inset(0 100% 100% 0);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 680px) {
   .paper {
-    padding: 0 30px;
-    background-size:
-      14px 20px,
-      14px 20px,
-      auto,
-      auto,
-      auto;
+    padding: 0 32px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 8px, #191714 8px 16px, transparent 16px 24px) left 8px top 0 / 8px 24px repeat-y,
+      repeating-linear-gradient(180deg, transparent 0 8px, #191714 8px 16px, transparent 16px 24px) right 8px top 0 / 8px 24px repeat-y,
+      repeating-linear-gradient(180deg, rgba(120, 190, 138, 0.24) 0 calc(var(--lh) * 2), #f7f4e9 calc(var(--lh) * 2) calc(var(--lh) * 4)),
+      #f7f4e9;
   }
   .tear {
-    margin: var(--lh) -30px 0;
+    margin: var(--lh) -32px 0;
   }
   .printout {
-    --printer-h: 130px;
-  }
-  .printer {
-    height: 130px;
-    margin-top: -130px;
+    --printer-h: 140px;
+    padding-top: 18vh;
   }
   .sheet {
-    padding-bottom: calc(130px + 3rem);
+    padding-bottom: calc(140px + 3.5rem);
+  }
+  .printer-top {
+    height: 26px;
+  }
+  .printer-slot {
+    top: 22px;
+    height: 22px;
   }
   .printer-front {
-    font-size: 10px;
+    top: 42px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+  .printer-vents-top,
+  .printer-vents-front,
+  .printer-knob {
+    display: none;
   }
 }

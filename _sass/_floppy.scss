@@ -1,128 +1,243 @@
 /*******************************************************************************
- * Projects: a box of 3.5" floppy disks on a desk, next to a floppy drive.
+ * Projects: a pixel-art box of 3.5" floppy disks next to a 3.5" drive and a
+ * large retro project viewer window.
  ******************************************************************************/
 
 body.bg-floppy {
   --global-theme-color: #e9c46a;
   --global-hover-color: #ffdf8e;
   --global-text-color: #efe8d6;
-  // a desk mat under a lamp
+  padding-bottom: 0 !important;
   background:
-    radial-gradient(ellipse 70% 55% at 45% 40%, rgba(255, 226, 170, 0.1), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 5px), linear-gradient(180deg, #2a2622, #171513);
+    radial-gradient(ellipse 75% 60% at 50% 35%, rgba(255, 224, 165, 0.09), transparent 72%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 2px, transparent 2px 4px), linear-gradient(180deg, #24201c 0%, #151311 100%);
   min-height: 100vh;
   > footer {
     display: none;
   }
+  > .container[role="main"] {
+    max-width: min(1420px, 96vw);
+    width: 100%;
+    padding: 0 20px;
+    margin-top: 1.5rem !important;
+  }
 }
 
 .floppy-scene {
-  --disk: min(380px, 78vw);
-  --step: 66px;
-  padding: 2.5rem 0 4rem;
+  --disk: 300px;
+  --step: 74px;
+  padding: 0.75rem 0 4rem;
   font-family: "Pixelify Sans", "Courier New", monospace;
   color: #efe8d6;
+  image-rendering: pixelated;
 }
+
 .scene-head {
-  margin-bottom: 2.2rem;
+  margin-bottom: 1.5rem;
   h1 {
     margin: 0;
     font-family: inherit;
     font-weight: 700;
-    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+    letter-spacing: 0.04em;
+    color: #efe8d6 !important;
   }
   p {
     margin: 0.2rem 0 0;
-    color: #b9b09a;
+    color: #b9b09a !important;
+    font-size: 1.02rem;
   }
-}
-// the box on the left; the drive with its window on the right
-.floppy-desk {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: clamp(1.5rem, 5vw, 4rem);
-}
-.fside {
-  position: sticky;
-  top: 80px;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  min-width: 0;
-  // the box's lid reaches above the disks, keep the drive level with it
-  margin-top: -34px;
 }
 
-/* ---------------------------------------------------------------- the window that reads the disk */
-.win.viewer {
-  position: relative;
-  min-height: 340px;
-  max-width: 720px;
-  font-family: "Pixelify Sans", "Courier New", monospace;
-  color: #111;
+// compact disk box column on the left; wide drive + viewer window column on the right
+.floppy-desk {
+  display: grid;
+  grid-template-columns: 336px minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1.5rem, 3vw, 2.75rem);
 }
+
+.fside {
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------- the large project viewer window */
+.win.viewer {
+  --global-text-color: #141418;
+  --global-theme-color: #0a246a;
+  position: relative;
+  width: 100%;
+  max-width: none;
+  min-height: 540px;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  color: #141418 !important;
+  background: #c3c3c3;
+  border: 3px solid;
+  border-color: #ffffff #111111 #111111 #ffffff;
+  box-shadow:
+    inset 2px 2px 0 #dfdfdf,
+    inset -2px -2px 0 #808080,
+    6px 6px 0 rgba(0, 0, 0, 0.55);
+}
+
 .viewer-body {
+  --global-text-color: #141418;
   flex: 1;
-  margin: 4px 2px;
-  padding: 18px 20px;
-  min-height: 260px;
-  background: #fff;
+  margin: 4px 3px;
+  padding: 24px 28px;
+  min-height: 440px;
+  background: #ffffff;
+  color: #141418 !important;
   border: 2px solid;
-  border-color: #808080 #fff #fff #808080;
-  box-shadow: inset 1px 1px 0 #000;
-  font-size: clamp(15px, 0.6vw + 11px, 18px);
-  line-height: 1.5;
+  border-color: #808080 #ffffff #ffffff #808080;
+  box-shadow: inset 2px 2px 0 #111111;
+  font-size: clamp(15.5px, 0.5vw + 13px, 18px);
+  line-height: 1.55;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  li,
+  ul,
+  ol,
+  span,
+  strong,
+  em,
+  div {
+    color: #141418 !important;
+  }
+
+  .viewer-doc-head {
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-bottom: 3px solid #0a246a;
+  }
+
   h2 {
-    margin: 0 0 0.2em;
+    margin: 0 0 4px;
     font-family: inherit;
     font-weight: 700;
-    font-size: 1.45em;
+    font-size: 1.6em;
     line-height: 1.2;
-    color: #0a246a;
+    color: #0a246a !important;
   }
+
+  h3 {
+    margin: 1.1em 0 0.4em;
+    font-weight: 700;
+    font-size: 1.2em;
+    color: #0a246a !important;
+  }
+
   p {
-    margin: 0 0 0.8em;
+    margin: 0 0 0.85em;
   }
+
+  ul,
+  ol {
+    margin: 0 0 1em;
+    padding-left: 1.4em;
+  }
+
+  li {
+    margin-bottom: 0.35em;
+  }
+
   .viewer-dates {
-    color: #a4232b;
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.95em;
+    color: #a4232b !important;
+    letter-spacing: 0.04em;
   }
+
+  .viewer-lead {
+    font-size: 1.08em;
+    font-weight: 700;
+    color: #1f2433 !important;
+    background: #eef2f8;
+    padding: 10px 14px;
+    border-left: 4px solid #0a246a;
+  }
+
   .viewer-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 1.2em;
+    gap: 12px;
+    margin-top: 1.5em;
+    padding-top: 14px;
+    border-top: 2px dashed #c5cbd6;
   }
+
   a:not(.btn95) {
-    color: #0a246a;
+    color: #0a246a !important;
+    font-weight: 700;
+    text-decoration: underline;
   }
 }
+
 .viewer-empty {
-  margin: 3em 0;
+  margin: 4.5em auto;
+  max-width: 420px;
   text-align: center;
-  color: #6b6b6b;
+
+  .empty-disk-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+    background:
+      linear-gradient(#f5f1e4, #f5f1e4) 10px 4px / 28px 22px no-repeat,
+      linear-gradient(#b5bac2, #b5bac2) 14px 32px / 20px 16px no-repeat,
+      #26468f;
+    border: 3px solid #111111;
+    box-shadow: 3px 3px 0 #c3c3c3;
+  }
+
+  .empty-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #222530 !important;
+    margin-bottom: 0.3em;
+  }
+
+  .empty-sub {
+    font-size: 0.95em;
+    color: #555966 !important;
+    margin: 0;
+  }
 }
-// reading the disk: a progress bar made of blocks
+
+// reading the disk: a pixel progress bar made of blocks
 .viewer-reading {
-  margin: 3em auto;
-  max-width: 320px;
+  margin: 4.5em auto;
+  max-width: 360px;
   text-align: center;
-  color: #333;
+  color: #141418 !important;
+  font-weight: 700;
   .bar {
     display: block;
-    height: 20px;
-    margin-top: 10px;
-    padding: 2px;
+    height: 22px;
+    margin-top: 12px;
+    padding: 3px;
     border: 2px solid;
-    border-color: #808080 #fff #fff #808080;
-    background: #fff;
+    border-color: #808080 #ffffff #ffffff #808080;
+    background: #ffffff;
+    box-shadow: inset 1px 1px 0 #000000;
   }
   .bar i {
     display: block;
     height: 100%;
     width: 0;
-    background: repeating-linear-gradient(90deg, #0a246a 0 10px, transparent 10px 12px);
-    animation: disk-read 0.7s steps(14) forwards;
+    background: repeating-linear-gradient(90deg, #000080 0 10px, transparent 10px 12px);
+    animation: disk-read 0.65s steps(14) forwards;
   }
 }
 @keyframes disk-read {
@@ -130,343 +245,467 @@ body.bg-floppy {
     width: 100%;
   }
 }
+
 .viewer-status {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 2px 6px;
+  gap: 8px;
+  padding: 2px 4px;
   font-size: 13px;
-  color: #333;
+  color: #111111 !important;
   span {
-    padding: 1px 6px;
-    border: 1px solid;
-    border-color: #808080 #fff #fff #808080;
+    padding: 2px 8px;
+    color: #111111 !important;
+    background: #b8b8b8;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
   }
   span:first-child {
     flex: 1;
   }
 }
+
 .viewer-body > *:not(.viewer-empty):not(.viewer-reading) {
-  animation: viewer-in 0.25s ease-out;
+  animation: viewer-in 0.18s steps(3);
 }
 @keyframes viewer-in {
   from {
     opacity: 0;
   }
 }
-// a disk coming back into the box
-.disk.is-back {
-  animation: disk-back 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
-@keyframes disk-back {
-  from {
-    transform: translateY(calc(var(--disk) * -0.5));
-    opacity: 0;
-  }
-}
 
-/* ---------------------------------------------------------------- the box */
+/* ---------------------------------------------------------------- the pixel-art floppy box */
 .fbox {
   position: relative;
-  padding: 0 18px;
+  padding: 28px 18px 0;
+  width: calc(var(--disk) + 36px);
 }
+
+// smoky pixel-dithered open lid behind the disks
 .fbox-lid {
-  // the smoky lid, flipped open behind the disks
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  top: -34px;
-  bottom: 40%;
-  border-radius: 10px 10px 4px 4px;
-  background: linear-gradient(180deg, rgba(70, 78, 90, 0.55), rgba(40, 44, 52, 0.75));
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.18),
-    0 8px 24px rgba(0, 0, 0, 0.45);
-  transform: perspective(700px) rotateX(14deg);
-  transform-origin: 50% 100%;
-}
-.fbox-disks {
-  position: relative;
-  width: var(--disk);
-  height: calc((var(--n) - 1) * var(--step) + var(--disk) * 1.02);
-}
-.fbox-front {
-  // the box's front wall hides the lower half of the disks
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -14px;
-  height: calc(var(--disk) * 0.5 + 14px);
+  top: 0;
+  bottom: 35%;
+  border-radius: 0;
+  background-color: rgba(48, 54, 64, 0.78);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 0);
+  background-size: 4px 4px;
+  border: 4px solid #14161a;
+  box-shadow:
+    inset 4px 4px 0 rgba(255, 255, 255, 0.18),
+    inset -4px 0 0 rgba(0, 0, 0, 0.4),
+    6px 8px 0 rgba(0, 0, 0, 0.5);
+}
+
+.fbox-disks {
+  position: relative;
+  width: var(--disk);
+  height: calc((var(--n) - 1) * var(--step) + var(--disk) * 0.92);
+}
+
+// front wall of the storage box hiding the lower half of the disks
+.fbox-front {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: calc(var(--disk) * 0.42 + 10px);
   z-index: 40;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 18px;
-  border-radius: 6px 6px 10px 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 8%), linear-gradient(180deg, rgba(64, 70, 82, 0.92), rgba(30, 33, 40, 0.97));
+  padding-bottom: 16px;
+  border-radius: 0;
+  background: repeating-linear-gradient(180deg, #cfc8b2 0 4px, #c2baa2 4px 8px);
+  border: 4px solid #14161a;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -4px 8px rgba(0, 0, 0, 0.5),
-    0 14px 28px rgba(0, 0, 0, 0.55);
+    inset 4px 4px 0 #f2ece0,
+    inset -4px -4px 0 #8a826c,
+    6px 8px 0 rgba(0, 0, 0, 0.55);
   pointer-events: none;
+
   span {
-    padding: 4px 10px;
-    border-radius: 3px;
-    background: #e9e3d0;
-    color: #3b3a36;
+    padding: 4px 12px;
+    border-radius: 0;
+    background: #f5f1e4;
+    color: #1f1e1b !important;
+    font-weight: 700;
     font-size: 12px;
     letter-spacing: 0.12em;
+    border: 2px solid #14161a;
+    box-shadow: 2px 2px 0 #8a826c;
   }
 }
 
-/* ---------------------------------------------------------------- a disk */
+/* ---------------------------------------------------------------- a pixel-art 3.5" disk */
+// Stationary hit strip per disk so hovering never shifts hit boxes or overlaps neighbors
 .disk {
-  --body: #1e1e22;
-  --edge: #0f0f12;
+  --body: #26468f;
+  --hi: #4b6ec2;
+  --edge: #142654;
   position: absolute;
   left: 0;
   top: calc(var(--i) * var(--step));
   z-index: calc(var(--i) + 1);
   width: var(--disk);
-  height: calc(var(--disk) * 1.02);
+  height: var(--step);
   display: block;
-  color: #1d1c22 !important;
+  color: #14161f !important;
   text-decoration: none !important;
-  // the cut corner of a 3.5" disk
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 5% 100%, 0 calc(100% - 5%));
-  border-radius: 4px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 4%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px), var(--body);
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -3px 0 var(--edge);
-  transition:
-    transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2),
-    filter 0.2s;
   outline: none;
-  &:hover,
-  &:focus-visible,
-  &.is-up {
-    z-index: 60;
-    transform: translateY(calc(var(--disk) * -0.4)) rotate(-1.2deg);
-    filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.55));
+  cursor: pointer;
+
+  // the frontmost disk's hit region reaches down to the front wall of the box
+  &:last-child {
+    height: calc(var(--disk) * 0.54);
   }
-  &:focus-visible .disk-label {
-    outline: 2px dashed #2f7cf6;
-    outline-offset: 2px;
+
+  // while hovered, extend the hit zone up over the lifted card so clicking its top works too
+  &:hover::before,
+  &.is-up::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -58px;
+    height: 58px;
   }
-}
-.disk.c1 {
-  --body: #26468f;
-  --edge: #16295a;
-}
-.disk.c2 {
-  --body: #b02a32;
-  --edge: #6f141a;
-}
-.disk.c3 {
-  --body: #dcae2a;
-  --edge: #8f6c10;
-}
-.disk.c4 {
-  --body: #2f8a5a;
-  --edge: #185436;
-}
-.disk.c5 {
-  --body: #8b8e95;
-  --edge: #55585e;
-}
-.disk.c6 {
-  --body: #6a40a0;
-  --edge: #3d2266;
 }
 
-// the paper label, written with a marker
-.disk-label {
+.disk-card {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 4%;
-  height: 58%;
+  left: 0;
+  top: 0;
+  width: var(--disk);
+  height: calc(var(--disk) * 1.02);
+  display: block;
+  pointer-events: none;
+  border-radius: 0;
+  background: var(--body);
+  border: 3px solid #0d0e12;
+  // pixel-stepped notched top-right corner
+  clip-path: polygon(
+    0 0,
+    calc(100% - 16px) 0,
+    calc(100% - 16px) 4px,
+    calc(100% - 12px) 4px,
+    calc(100% - 12px) 8px,
+    calc(100% - 8px) 8px,
+    calc(100% - 8px) 12px,
+    calc(100% - 4px) 12px,
+    calc(100% - 4px) 16px,
+    100% 16px,
+    100% 100%,
+    0 100%
+  );
+  box-shadow:
+    inset 3px 3px 0 var(--hi),
+    inset -3px -3px 0 var(--edge),
+    0 -2px 0 rgba(0, 0, 0, 0.45);
+  transition: transform 0.16s steps(4);
+}
+
+.disk:hover .disk-card,
+.disk:focus-visible .disk-card,
+.disk.is-up .disk-card {
+  transform: translateY(-58px);
+}
+
+.disk:focus-visible .disk-label {
+  outline: 2px dashed #0a246a;
+  outline-offset: -3px;
+}
+
+.disk.is-back .disk-card {
+  animation: disk-back 0.28s steps(5);
+}
+@keyframes disk-back {
+  from {
+    transform: translateY(-130px);
+    opacity: 0;
+  }
+}
+
+// color palette for the disks in the box
+.disk.c0 {
+  --body: #2b4c96;
+  --hi: #5278cc;
+  --edge: #162957;
+}
+.disk.c1 {
+  --body: #b02a32;
+  --hi: #de545c;
+  --edge: #691318;
+}
+.disk.c2 {
+  --body: #c99818;
+  --hi: #f0c248;
+  --edge: #7d5c08;
+}
+.disk.c3 {
+  --body: #287a4e;
+  --hi: #4ca876;
+  --edge: #14452b;
+}
+.disk.c4 {
+  --body: #5e4294;
+  --hi: #886bc2;
+  --edge: #352259;
+}
+.disk.c5 {
+  --body: #383b42;
+  --hi: #606570;
+  --edge: #1d1f24;
+}
+.disk.c6 {
+  --body: #1f7078;
+  --hi: #429da6;
+  --edge: #103e42;
+}
+
+// embossed pixel arrow on upper-left of disk shell
+.disk-arrow {
+  position: absolute;
+  left: 8px;
+  top: 12px;
+  width: 8px;
+  height: 14px;
+  background: var(--edge);
+  clip-path: polygon(50% 0, 100% 45%, 70% 45%, 70% 100%, 30% 100%, 30% 45%, 0 45%);
+}
+
+// paper label with pixel typography
+.disk-label {
+  --global-text-color: #14161f;
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 8px;
+  height: 55%;
   display: flex;
   flex-direction: column;
-  padding: 0 12px 10px;
-  border-radius: 3px 3px 2px 2px;
+  padding: 0 10px 8px;
+  border-radius: 0;
   background:
-    repeating-linear-gradient(180deg, transparent 0 23px, rgba(70, 110, 190, 0.18) 23px 24px) 0 34px / 100% calc(100% - 34px) no-repeat,
-    #f5f1e4;
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.25);
+    repeating-linear-gradient(180deg, transparent 0 21px, rgba(60, 95, 165, 0.2) 21px 23px) 0 24px / 100% calc(100% - 24px) no-repeat,
+    #f6f2e6;
+  border: 2px solid #14161a;
+  box-shadow: inset 0 -2px 0 #dcd5c0;
   overflow: hidden;
 }
+
 .disk-strip {
   display: flex;
   align-items: center;
-  height: 12px;
-  margin: 0 -12px 6px;
+  height: 14px;
+  margin: 0 -10px 5px;
   padding: 0 8px;
   background: var(--body);
-  opacity: 0.85;
+  border-bottom: 2px solid #14161a;
   b {
-    font-size: 9px;
-    color: #f5f1e4;
+    font-family: "Pixelify Sans", monospace;
+    font-size: 10px;
+    color: #ffffff !important;
     letter-spacing: 0.1em;
   }
 }
+
 .disk-title {
-  font-family: "Caveat", "Comic Sans MS", cursive;
+  font-family: "Pixelify Sans", "Courier New", monospace;
   font-weight: 700;
-  font-size: 1.45rem;
-  line-height: 1.1;
-  color: #1b2a6b;
-  // on the box only one line shows; pulled out the whole title can be read
+  font-size: 1.05rem;
+  line-height: 1.15;
+  color: #10182b !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .disk-dates {
-  font-family: "Caveat", cursive;
-  font-size: 1.05rem;
-  color: #a4232b;
+  font-family: "Pixelify Sans", monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #a4232b !important;
   margin-top: 2px;
 }
+
 .disk-desc {
-  font-family: "Caveat", cursive;
-  font-size: 1.12rem;
-  line-height: 24px;
-  color: #26262c;
+  font-family: "Pixelify Sans", monospace;
+  font-size: 0.84rem;
+  line-height: 1.25;
+  color: #252834 !important;
   margin-top: 4px;
   overflow: hidden;
 }
+
 .disk:hover .disk-title,
 .disk:focus-visible .disk-title,
 .disk.is-up .disk-title {
   white-space: normal;
 }
-// the metal shutter, at the bottom since the disk stands shutter-down
+
+// pixel-art metal shutter at the bottom of the disk
 .disk-shutter {
   position: absolute;
-  left: 27%;
-  width: 46%;
+  left: 26%;
+  width: 48%;
   bottom: 0;
-  height: 31%;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(90deg, #8f949c, #e2e5ea 35%, #b5bac2 70%, #8a8f97);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  height: 30%;
+  border-radius: 0;
+  background: linear-gradient(90deg, #9da3ad 0 18%, #e4e8ee 18% 48%, #b8bec8 48% 82%, #858b94 82% 100%);
+  border: 3px solid #0d0e12;
+  border-bottom: 0;
+  box-shadow: inset 2px 2px 0 #ffffff;
   span {
     position: absolute;
-    left: 58%;
-    width: 18%;
-    top: 22%;
-    bottom: 22%;
-    background: #2a2b30;
-    border-radius: 1px;
+    left: 56%;
+    width: 20%;
+    top: 18%;
+    bottom: 18%;
+    background: #23252a;
+    border: 2px solid #0d0e12;
   }
 }
+
+// pixel write-protect notch
 .disk-wp {
   position: absolute;
-  right: 6%;
-  bottom: 5%;
-  width: 7%;
-  height: 7%;
-  background: #0c0c0e;
-  border-radius: 1px;
+  right: 8px;
+  bottom: 12px;
+  width: 12px;
+  height: 12px;
+  background: #0d0e12;
+  border: 2px solid var(--edge);
 }
 
-/* ---------------------------------------------------------------- the drive */
+/* ---------------------------------------------------------------- the pixel-art 3.5" drive bay */
 .drive {
   position: relative;
-  width: min(360px, 86vw);
+  width: 100%;
 }
+
 .drive-face {
-  height: 120px;
-  border-radius: 8px;
-  padding: 26px 22px 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 12%), linear-gradient(180deg, #e6dfca, #c9bf9f);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 20px;
+  border-radius: 0;
+  background: #d8d0b8;
+  border: 4px solid #14161a;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -5px 10px rgba(90, 72, 36, 0.3),
-    0 18px 30px rgba(0, 0, 0, 0.55);
+    inset 4px 4px 0 #f4efe0,
+    inset -4px -4px 0 #8e856d,
+    6px 6px 0 rgba(0, 0, 0, 0.5);
+}
+
+.drive-bay {
+  flex: 1;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
 }
+
 .drive-slot {
   position: relative;
   display: block;
-  height: 14px;
-  border-radius: 3px;
-  background: #121110;
+  height: 16px;
+  border-radius: 0;
+  background: #10100e;
+  border: 3px solid #2b2820;
   box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.6);
+    inset 0 3px 0 #000000,
+    0 2px 0 #f4efe0;
 }
+
 .drive-flap {
   position: absolute;
-  inset: 3px 6px 4px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #3a3833, #24221e);
+  inset: 2px 6px;
+  border-radius: 0;
+  background: repeating-linear-gradient(90deg, #38352e 0 6px, #2b2923 6px 12px);
   transform-origin: 50% 0;
-  transition: transform 0.15s;
+  transition: transform 0.12s steps(2);
 }
 .drive.is-loading .drive-flap {
   transform: scaleY(0.2);
 }
+
 .drive-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: #7d7458;
-  font-size: 13px;
-}
-.drive-led {
-  width: 18px;
-  height: 6px;
-  border-radius: 1px;
-  background: #3e4a3c;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
-}
-.drive.is-loading .drive-led {
-  background: #63ff7d;
-  box-shadow: 0 0 8px #63ff7d;
-}
-.drive-name {
-  font-weight: 700;
-}
-.drive-eject {
-  margin-left: auto;
-  width: 34px;
-  height: 14px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, #ece6d2, #c2b896);
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 1px 2px rgba(0, 0, 0, 0.4);
-}
-.drive-foot {
-  display: block;
-  height: 8px;
-  margin: 0 18px;
-  border-radius: 0 0 4px 4px;
-  background: #8a7f60;
+  gap: 10px;
+  font-size: 12px;
 }
 
-// the disk on its way into the drive
+.drive-led {
+  width: 14px;
+  height: 8px;
+  border-radius: 0;
+  background: #2f3b2f;
+  border: 2px solid #141a14;
+}
+.drive.is-loading .drive-led {
+  background: #38ff62;
+  box-shadow: 0 0 8px #38ff62;
+}
+
+.drive-name {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #3d382c !important;
+}
+
+.drive-eject {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 0;
+  background: #ded7c0;
+  color: #221f18 !important;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid;
+  border-color: #f4efe0 #5c5646 #5c5646 #f4efe0;
+  box-shadow: 2px 2px 0 #14161a;
+  pointer-events: auto;
+  cursor: pointer;
+  &:hover {
+    background: #eae3ce;
+  }
+  &:active {
+    border-color: #5c5646 #f4efe0 #f4efe0 #5c5646;
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 #14161a;
+  }
+}
+
+.drive-vents {
+  width: 160px;
+  height: 28px;
+  background: repeating-linear-gradient(90deg, #78705a 0 4px, #f4efe0 4px 6px, transparent 6px 12px);
+}
+
+// flying disk clone on its way into the drive slot
 .disk-fly {
   position: fixed !important;
   margin: 0 !important;
   z-index: 1000 !important;
   transition: none !important;
   pointer-events: none;
-  filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.5));
+  .disk-card {
+    position: static !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+  }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 920px) {
   .floppy-scene {
-    --step: 60px;
+    --disk: min(300px, 82vw);
+    --step: 66px;
   }
   .floppy-desk {
     grid-template-columns: minmax(0, 1fr);
@@ -475,10 +714,8 @@ body.bg-floppy {
   .fside {
     position: static;
     width: 100%;
-    margin-top: 0;
-    align-items: center;
   }
-  .win.viewer {
-    width: 100%;
+  .drive-vents {
+    display: none;
   }
 }
