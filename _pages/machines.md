@@ -3,7 +3,7 @@ layout: page
 permalink: /machines/
 title: Machines
 description: Content coming soon.
-nav: true
+nav: false
 nav_order: 7
 background: retro
 ---

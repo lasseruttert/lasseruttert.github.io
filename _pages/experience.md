@@ -5,7 +5,7 @@ title: Experience
 description: Research positions and degrees.
 nav: true
 nav_order: 1
-background: pearl
+background: keys
 ---
 
 {% include timeline.liquid items=site.data.experience %}

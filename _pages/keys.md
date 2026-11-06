@@ -3,7 +3,7 @@ layout: page
 permalink: /keys/
 title: Keys
 description: Content coming soon.
-nav: true
+nav: false
 nav_order: 6
 background: keys
 ---
