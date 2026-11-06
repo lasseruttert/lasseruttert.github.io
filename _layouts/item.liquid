@@ -7,7 +7,7 @@ layout: default
 {% endcomment %}
 <style>
   body {
-    background: {{ page.item_color | default: '#3a2412' }};
+    background: {{ page.item_color | default: '#221b17' }};
     font-family: "Pixelify Sans", "Courier New", monospace;
   }
   .item-page {
@@ -20,17 +20,14 @@ layout: default
     font-size: clamp(1.8rem, 4vw, 2.6rem);
   }
   .item-page .item-meta {
-    color: var(--global-theme-color);
+    color: var(--global-text-color-light);
     margin-bottom: 1.5rem;
   }
   .item-page a {
-    color: #f2c56b;
+    color: var(--global-theme-color);
   }
   .item-page a:hover {
-    color: #ffe0a0;
-  }
-  .item-page .item-meta {
-    color: #e6c79a;
+    color: var(--global-hover-color);
   }
   .item-page .item-links a {
     display: inline-block;

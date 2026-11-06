@@ -17,7 +17,7 @@
 
   <!-- Body -->
   {% assign bg = page.background | default: layout.background %}
-  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}{% if bg %} has-bg bg-{{ bg }}{% elsif page.item_color %} has-bg bg-item{% endif %}">
+  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}{% if bg %} has-bg bg-{{ bg }}{% elsif page.item_color %} has-bg bg-item bg-item-{{ page.collection }}{% endif %}">
     {% if bg %}
       <canvas id="bg-canvas" data-bg="{{ bg }}" aria-hidden="true"></canvas>
     {% endif %}
@@ -54,10 +54,10 @@
     <!-- Footer -->
     {% include footer.liquid %}
 
-    <!-- JavaScripts -->
-    {% include scripts.liquid %}
+    <!-- JavaScripts: the background first, it does not need any of the theme's scripts -->
     {% if bg %}
       <script src="{{ '/assets/js/backgrounds.js' | relative_url | bust_file_cache }}"></script>
     {% endif %}
+    {% include scripts.liquid %}
   </body>
 </html>

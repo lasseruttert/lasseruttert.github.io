@@ -2902,19 +2902,24 @@ float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 float vig(vec2 p){return 1.;}
 // a hovered block is drawn a little bigger, lifted off the wall with a soft shadow
-vec2 hoverWarp(vec2 w,out float lift,out float shade){
-  lift=0.;shade=1.;
-  if(uHovAmt<.001)return w;
-  vec2 c=uHov.xy+uHov.zw*.5;
-  float k=1.+.06*uHovAmt;
+// r: block rect, a: amount 0..1, k: scale; hit is set when w lands on the grown block
+vec2 rectWarp(vec2 w,vec4 r,float a,float k,float inset,float rad,inout float lift,inout float shade,out bool hit){
+  hit=false;
+  if(a<.001)return w;
+  vec2 c=r.xy+r.zw*.5;
   vec2 q=c+(w-c)/k;
-  vec2 hh=uHov.zw*.5-uHovInset;
-  vec2 d=abs(q-c)-(hh-uHovR);
-  if(length(max(d,0.))+min(max(d.x,d.y),0.)-uHovR<0.){lift=uHovAmt;return q;}
-  vec2 sq=c+(w-vec2(7.,10.)*uHovAmt-c)/k;
-  vec2 sd=abs(sq-c)-uHov.zw*.5;
-  shade=1.-.5*uHovAmt*(1.-smoothstep(-4.,26.,max(sd.x,sd.y)));
+  vec2 hh=r.zw*.5-inset;
+  vec2 d=abs(q-c)-(hh-rad);
+  if(length(max(d,0.))+min(max(d.x,d.y),0.)-rad<0.){lift=a;hit=true;return q;}
+  vec2 off=vec2(.7,1.)*a*min(10.,.12*min(r.z,r.w));
+  vec2 sq=c+(w-off-c)/k;
+  vec2 sd=abs(sq-c)-r.zw*.5;
+  shade*=1.-.5*a*(1.-smoothstep(-4.,26.,max(sd.x,sd.y)));
   return w;
+}
+vec2 hoverWarp(vec2 w,out float lift,out float shade){
+  lift=0.;shade=1.;bool hit;
+  return rectWarp(w,uHov,uHovAmt,1.+.06*uHovAmt,uHovInset,uHovR,lift,shade,hit);
 }
 void cellInfo(vec2 w,out vec2 lp,out vec2 sz,out vec4 meta){
   vec2 c=clamp(floor((w-uOrg)/uU),vec2(0.),uGrid-1.);
@@ -3210,9 +3215,17 @@ void main(){
     COMMON +
     `
 uniform sampler2D uAlb;uniform sampler2D uMask;uniform sampler2D uGlow;uniform vec2 uAlbSize;uniform float uAlbScale;uniform float uMode;
+uniform vec4 uKA;uniform float uKAa;uniform vec4 uKB;uniform float uKBa;
+float keyK(vec4 r,float a){return 1.+a*min(.15,8./min(r.z,r.w));}
 void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);
   float lift,hs;w=hoverWarp(w,lift,hs);
+  if(uMode<.5){
+    // keyboard: the key under the pointer (and the one it just left) pops up
+    bool hit;
+    w=rectWarp(w,uKA,uKAa,keyK(uKA,uKAa),3.,7.,lift,hs,hit);
+    if(!hit)w=rectWarp(w,uKB,uKBa,keyK(uKB,uKBa),3.,7.,lift,hs,hit);
+  }
   vec2 uv=w*uAlbScale/uAlbSize;
   vec3 col=texture(uAlb,uv).rgb;
   if(uMode>.5){
@@ -3554,8 +3567,18 @@ void main(){
         });
       });
       var list = pidx.blocks.map(function (b) {
-        return { x: pidx.gx0 + b.c * u, y: pidx.gy0 + b.r * u, w: b.w * u, h: b.h * u, cw: b.w, ch: b.h, plate: !!b.plate };
+        return { x: pidx.gx0 + b.c * u, y: pidx.gy0 + b.r * u, w: b.w * u, h: b.h * u, cw: b.w, ch: b.h, plate: !!b.plate, slot: b.plate ? b.i : -1 };
       });
+      if (kind === "keys") {
+        var at = new Int32Array(pidx.cols * pidx.rows).fill(-1);
+        pidx.blocks.forEach(function (b, j) {
+          for (var y = b.r; y < Math.min(pidx.rows, b.r + b.h); y++)
+            for (var x = b.c; x < Math.min(pidx.cols, b.c + b.w); x++) at[y * pidx.cols + x] = j;
+        });
+        resetKeys();
+        keyMap = { at: at, cols: pidx.cols, rows: pidx.rows, gx0: pidx.gx0, gy0: pidx.gy0, u: u, list: list };
+        pickKey(true);
+      }
       var sc = 0.5;
       var maxTp = gl.getParameter(gl.MAX_TEXTURE_SIZE);
       var pw = Math.ceil(W * sc),
@@ -3691,6 +3714,103 @@ void main(){
   var m = { x: 0, y: 0, tx: 0, ty: 0, hover: 0, th: 0 };
   var hov = { el: null, i: -1, amt: 0, target: 0 };
   var worldRects = [];
+
+  // keyboard page: every key reacts to the pointer, with a soft click
+  var keyMap = null;
+  var keyA = { i: -1, amt: 0, t: 0 },
+    keyB = { i: -1, amt: 0, t: 0 };
+  var ptr = { x: -1, y: -1, in: false };
+  function keyScale(r, a) {
+    return 1 + a * Math.min(0.15, 8 / Math.min(r.w, r.h));
+  }
+  function styleKeySlot(k) {
+    if (!keyMap || k.i < 0) return;
+    var r = keyMap.list[k.i];
+    if (!r || r.slot < 0 || !slotEls[r.slot]) return;
+    var e = slotEls[r.slot];
+    var big = k.amt > 0.001;
+    e.style.transform = big ? "scale(" + keyScale(r, k.amt).toFixed(4) + ")" : "";
+    e.style.zIndex = big ? "3" : "";
+  }
+  function resetKeys() {
+    keyA.amt = keyB.amt = 0;
+    styleKeySlot(keyA);
+    styleKeySlot(keyB);
+    keyA = { i: -1, amt: 0, t: 0 };
+    keyB = { i: -1, amt: 0, t: 0 };
+  }
+  function pickKey(silent) {
+    if (!keyMap) return;
+    var j = -1;
+    if (ptr.in) {
+      var c = Math.floor((ptr.x + window.scrollX - keyMap.gx0) / keyMap.u),
+        r = Math.floor((ptr.y + window.scrollY - keyMap.gy0) / keyMap.u);
+      if (c >= 0 && r >= 0 && c < keyMap.cols && r < keyMap.rows) j = keyMap.at[r * keyMap.cols + c];
+    }
+    if (j === keyA.i) {
+      keyA.t = j < 0 ? 0 : 1;
+      kick();
+      return;
+    }
+    // the old key settles back while the new one rises
+    var back = j >= 0 && j === keyB.i ? keyB : null;
+    if (keyB.i >= 0 && !back) {
+      keyB.amt = 0;
+      styleKeySlot(keyB);
+    }
+    keyB = { i: keyA.i, amt: keyA.amt, t: 0 };
+    keyA = back ? { i: j, amt: back.amt, t: 1 } : { i: j, amt: 0, t: j < 0 ? 0 : 1 };
+    if (j >= 0 && !silent) clack(keyMap.list[j]);
+    kick();
+  }
+  var audio = null,
+    lastClack = 0;
+  function unlockAudio() {
+    if (audio) {
+      if (audio.state === "suspended") audio.resume();
+      return;
+    }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      audio = new AC();
+    } catch (err) {
+      audio = null;
+    }
+  }
+  // a typing click: a bright tick as the switch actuates, then a short dull clack as it bottoms out
+  var noiseBuf = null;
+  function burst(t, dur, type, freq, q, gain) {
+    var src = audio.createBufferSource();
+    src.buffer = noiseBuf;
+    var f = audio.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    f.Q.value = q;
+    var g = audio.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.0008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f);
+    f.connect(g);
+    g.connect(audio.destination);
+    src.start(t, Math.random() * 0.05, dur + 0.01);
+  }
+  function clack(r) {
+    if (!audio || audio.state !== "running") return;
+    var now = audio.currentTime;
+    if (now - lastClack < 0.03) return;
+    lastClack = now;
+    if (!noiseBuf) {
+      noiseBuf = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.1), audio.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    var big = r && Math.max(r.cw, r.ch) > 1;
+    var v = 0.85 + Math.random() * 0.3;
+    burst(now, 0.012, "highpass", 3800 * v, 0.7, 0.22);
+    burst(now + 0.007 + Math.random() * 0.006, big ? 0.03 : 0.022, "bandpass", (big ? 1300 : 2000) * v, 2.5, big ? 0.2 : 0.15);
+  }
   var raf = 0,
     last = 0,
     t0 = performance.now();
@@ -3706,6 +3826,14 @@ void main(){
     var hr = hov.el && worldRects[hov.i];
     gl.uniform4f(uni.uHov, hr ? hr.x : 0, hr ? hr.y : 0, hr ? hr.w : 0, hr ? hr.h : 0);
     gl.uniform1f(uni.uHovAmt, hr ? hov.amt : 0);
+    if (keyMap) {
+      var ka = keyMap.list[keyA.i],
+        kb = keyMap.list[keyB.i];
+      gl.uniform4f(uni.uKA, ka ? ka.x : 0, ka ? ka.y : 0, ka ? ka.w : 1, ka ? ka.h : 1);
+      gl.uniform1f(uni.uKAa, ka ? keyA.amt : 0);
+      gl.uniform4f(uni.uKB, kb ? kb.x : 0, kb ? kb.y : 0, kb ? kb.w : 1, kb ? kb.h : 1);
+      gl.uniform1f(uni.uKBa, kb ? keyB.amt : 0);
+    }
     gl.uniform1f(uni.uScrollY, window.scrollY);
     gl.uniform2f(uni.uView, css.w, window.innerHeight);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -3727,6 +3855,17 @@ void main(){
       hov.el.style.transform = big ? "scale(" + (1 + 0.06 * hov.amt).toFixed(4) + ")" : "";
       hov.el.style.zIndex = big ? "3" : "";
       if (!big && hov.target === 0) hov.el = null;
+    }
+    if (keyMap) {
+      [keyA, keyB].forEach(function (k) {
+        if (k.i < 0) return;
+        var dk = k.t - k.amt;
+        if (Math.abs(dk) > 0.003) {
+          k.amt += dk * (dk > 0 ? 0.35 : 0.18);
+          moving = true;
+        } else k.amt = k.t;
+        styleKeySlot(k);
+      });
     }
     if (kind === "glass" || kind === "amber") {
       m.x += (m.tx - m.x) * 0.14;
@@ -3791,9 +3930,11 @@ void main(){
         var loc = gl.getAttribLocation(prog, "a");
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        ["uCss", "uRes", "uDpr", "uMouse", "uHover", "uTime", "uTop", "uScrollY", "uView", "uHov", "uHovAmt"].forEach(function (n) {
-          uni[n] = gl.getUniformLocation(prog, n);
-        });
+        ["uCss", "uRes", "uDpr", "uMouse", "uHover", "uTime", "uTop", "uScrollY", "uView", "uHov", "uHovAmt", "uKA", "uKAa", "uKB", "uKBa"].forEach(
+          function (n) {
+            uni[n] = gl.getUniformLocation(prog, n);
+          }
+        );
       } catch (err) {
         if (window.console) console.warn("backgrounds: WebGL unavailable, showing plain panels", err);
         gl = null;
@@ -3842,6 +3983,7 @@ void main(){
       function () {
         // move the window and redraw right away, in the same frame as the scroll
         if (ensureWindow()) draw(performance.now());
+        if (keyMap && ptr.in) pickKey();
         if (kind === "glass") {
           scrolled = true;
           kick();
@@ -3852,6 +3994,13 @@ void main(){
     window.addEventListener(
       "pointermove",
       function (e) {
+        if (keyMap) {
+          ptr.x = e.clientX;
+          ptr.y = e.clientY;
+          ptr.in = e.pointerType !== "touch";
+          pickKey();
+          return;
+        }
         if (kind !== "glass" && kind !== "amber") return;
         m.tx = e.clientX;
         m.ty = e.clientY;
@@ -3860,7 +4009,15 @@ void main(){
       },
       { passive: true }
     );
+    if (kind === "keys") {
+      // browsers only allow sound after the visitor has clicked or typed once
+      ["pointerdown", "keydown"].forEach(function (ev) {
+        window.addEventListener(ev, unlockAudio, { passive: true });
+      });
+    }
     document.documentElement.addEventListener("mouseleave", function () {
+      ptr.in = false;
+      if (keyMap) pickKey();
       m.th = 0;
       kick();
     });
@@ -3896,6 +4053,7 @@ void main(){
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+  // the script sits after the content, so it can start without waiting for the theme's scripts
+  if (document.readyState !== "loading" || document.querySelector('[role="main"]')) init();
+  else document.addEventListener("DOMContentLoaded", init);
 })();

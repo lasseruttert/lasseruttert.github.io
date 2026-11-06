@@ -12,7 +12,7 @@
   pointer-events: none;
   image-rendering: pixelated;
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.25s ease;
 
   &.is-ready {
     opacity: 1;
@@ -619,4 +619,20 @@ body.bg-retro.bg-live .slot {
   83% {
     opacity: 0.96;
   }
+}
+
+/* ---------------------------------------------------------------- detail pages (one flat colour) */
+body.bg-item {
+  --global-text-color: #e8e2d8;
+  --global-text-color-light: #b3aa9c;
+}
+body.bg-item-publications {
+  --global-bg-color: #221b17;
+  --global-theme-color: #c9a77a;
+  --global-hover-color: #e6cfae;
+}
+body.bg-item-projects {
+  --global-bg-color: #18201b;
+  --global-theme-color: #9dbba6;
+  --global-hover-color: #c7ddcd;
 }
