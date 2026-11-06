@@ -1,0 +1,80 @@
+{% comment %}
+  The About page: one big old monitor showing a retro desktop with a chat window.
+  The messages come from page.messages; desk.js reveals them one by one while
+  the visitor scrolls. Without JavaScript all messages are simply shown.
+{% endcomment %}
+{% assign links = 'Experience|/experience/,Publications|/publications/,Projects|/projects/,Blog|/blog/' | split: ',' %}
+<section class="desk" data-desk style="--n: {{ page.messages.size }}">
+  <h1 class="sr-only">
+    {{ site.first_name }}
+    {{ site.last_name }}
+  </h1>
+  <div class="crt">
+    <div class="crt-bezel">
+      <div class="crt-screen">
+        <div class="os">
+          <ul class="os-icons">
+            {% for l in links %}
+              {% assign p = l | split: '|' %}
+              <li>
+                <a href="{{ p[1] | relative_url }}" class="os-icon">
+                  <svg viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges">
+                    {% if forloop.index == 4 %}
+                      <path fill="#fff" d="M3 1h7l3 3v11H3z" />
+                      <path fill="#9a9a9a" d="M10 1v3h3z" />
+                      <path fill="#2a5db0" d="M5 6h6v1H5zM5 8h6v1H5zM5 10h6v1H5zM5 12h4v1H5z" />
+                      <path fill="#000" d="M2 1h1v15H2zM3 15h11v1H3zM13 4h1v11h-1zM3 0h7v1H3zM10 1h1v1h-1zM11 2h1v1h-1zM12 3h1v1h-1z" />
+                    {% else %}
+                      <path fill="#e8c34a" d="M1 4h5l1 1h8v9H1z" />
+                      <path fill="#f6dc7a" d="M1 6h14v1H1z" />
+                      <path fill="#8a6a12" d="M0 4h1v11H0zM1 14h15v1H1zM15 5h1v9h-1zM1 3h5v1H1zM6 4h1v1H6zM7 4h8v1H7z" />
+                    {% endif %}
+                  </svg>
+                  <span>{{ p[0] }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+
+          <div class="win chat">
+            <div class="win-title">
+              <span class="win-dot" aria-hidden="true"></span>
+              <span class="win-name">{{ page.chat_title }}</span>
+              <span class="win-btns" aria-hidden="true"><b>_</b><b>&#9633;</b><b>&times;</b></span>
+            </div>
+            <div class="win-menu" aria-hidden="true"><span>File</span><span>Edit</span><span>View</span><span>Help</span></div>
+            <div class="chat-body" role="log" aria-live="polite">
+              {% for m in page.messages %}
+                <p class="msg" data-msg>
+                  <b class="who">Lasse:</b> <span class="txt">{{ m }}</span>
+                </p>
+              {% endfor %}
+              <p class="typing" aria-hidden="true">Lasse is typing<i>.</i><i>.</i><i>.</i></p>
+              <div class="chat-options" data-options>
+                {% for l in links %}
+                  {% assign p = l | split: '|' %}
+                  <a class="btn95" href="{{ p[1] | relative_url }}">{{ p[0] }}</a>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="chat-input">
+              <span class="field" data-hint>Scroll down to keep chatting &darr;</span>
+              <span class="btn95 is-disabled" aria-hidden="true">Send</span>
+            </div>
+          </div>
+
+          <div class="os-taskbar">
+            <span class="btn95 os-start"><span class="os-logo" aria-hidden="true"></span>Lasse</span>
+            <span class="os-task is-active">{{ page.chat_title }}</span>
+            <span class="os-tray"><span class="os-clock" data-clock>12:00</span></span>
+          </div>
+        </div>
+        <div class="crt-glass" aria-hidden="true"></div>
+      </div>
+      <div class="crt-chin">
+        <span class="crt-brand">LR&middot;97</span>
+        <span class="crt-knobs" aria-hidden="true"><i></i><i></i><span class="crt-led"></span></span>
+      </div>
+    </div>
+  </div>
+</section>

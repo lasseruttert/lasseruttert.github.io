@@ -17,7 +17,7 @@
 
   <!-- Body -->
   {% assign bg = page.background | default: layout.background %}
-  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}{% if bg %} has-bg bg-{{ bg }}{% elsif page.item_color %} has-bg bg-item bg-item-{{ page.collection }}{% endif %}">
+  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}{% if bg %} has-bg bg-{{ bg }}{% elsif page.item_color %} has-bg bg-item bg-item-{{ page.collection }}{% elsif page.desk %} has-bg bg-desk{% endif %}">
     {% if bg %}
       <canvas id="bg-canvas" data-bg="{{ bg }}" aria-hidden="true"></canvas>
     {% endif %}
@@ -56,7 +56,10 @@
 
     <!-- JavaScripts: the background first, it does not need any of the theme's scripts -->
     {% if bg %}
-      <script src="{{ '/assets/js/backgrounds.js' | relative_url | bust_file_cache }}"></script>
+      <script data-page-script src="{{ '/assets/js/backgrounds.js' | relative_url | bust_file_cache }}"></script>
+    {% endif %}
+    {% if page.desk %}
+      <script data-page-script src="{{ '/assets/js/desk.js' | relative_url | bust_file_cache }}"></script>
     {% endif %}
     {% include scripts.liquid %}
     <script defer src="{{ '/assets/js/softnav.js' | relative_url | bust_file_cache }}"></script>

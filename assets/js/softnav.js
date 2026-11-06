@@ -63,6 +63,7 @@
     if (!main || main.querySelector("script")) return false;
 
     if (window.__bgTeardown) window.__bgTeardown();
+    if (window.__pageTeardown) window.__pageTeardown();
     var oldCanvas = document.getElementById("bg-canvas");
     if (oldCanvas) oldCanvas.parentNode.removeChild(oldCanvas);
     var newCanvas = doc.getElementById("bg-canvas");
@@ -75,16 +76,16 @@
     document.body.className = nb.className;
     window.scrollTo(0, 0);
 
-    // start the new page's background
-    [].slice.call(document.querySelectorAll('script[src*="backgrounds.js"]')).forEach(function (s) {
+    // start the new page's own scripts (its background, the About chat, ...)
+    [].slice.call(document.querySelectorAll("script[data-page-script]")).forEach(function (s) {
       s.parentNode.removeChild(s);
     });
-    var src = doc.querySelector('script[src*="backgrounds.js"]');
-    if (newCanvas && src) {
+    [].slice.call(doc.querySelectorAll("script[data-page-script]")).forEach(function (src) {
       var s = document.createElement("script");
+      s.setAttribute("data-page-script", "");
       s.src = src.getAttribute("src");
       document.body.appendChild(s);
-    }
+    });
     if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise();
     shown = location.pathname + location.search;
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
