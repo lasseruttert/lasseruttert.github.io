@@ -2745,8 +2745,11 @@
     var minW = Math.max(2, Math.ceil(360 / u));
     slotEls.forEach(function (e, i) {
       var chars = e.textContent.replace(/\s+/g, " ").trim().length;
+      // lead blocks (the page header, or a section header like "Education") are wide,
+      // start at the left edge and sit alone in their row
+      var lead = i === 0 || e.classList.contains("slot-lead");
       var lo = clamp(Math.ceil(Math.sqrt(chars * 110) / u), minW, K);
-      if (i === 0) lo = Math.max(lo, Math.min(K, Math.ceil(K * 0.72)));
+      if (lead) lo = Math.max(lo, Math.min(K, Math.ceil(K * 0.72)));
       var hi = Math.min(K, lo + (chars > 250 ? 3 : 2));
       e.style.position = "absolute";
       e.style.margin = "0";
@@ -2774,6 +2777,7 @@
       var grp = e.getAttribute("data-group");
       var prevGrp = i > 0 ? slotEls[i - 1].getAttribute("data-group") : null;
       if (i > 0 && (grp || prevGrp) && grp !== prevGrp) r = maxRow + (R() < 0.5 ? 1 : 0);
+      if (i > 0 && lead) r = maxRow + 1;
       var c = 0;
       for (var guard = 0; guard < 400; guard++, r++) {
         // keep reading order: a block that shares rows with earlier blocks goes to their right
@@ -2785,7 +2789,7 @@
         var cands = [];
         for (var cc = minC; cc + w <= K; cc++) if (free(cc, r, w, h)) cands.push(cc);
         if (cands.length) {
-          var reach = Math.min(cands.length, i === 0 ? 1 : 3);
+          var reach = Math.min(cands.length, lead ? 1 : 3);
           c = cands[Math.floor(Math.pow(R(), 3) * reach)];
           break;
         }
@@ -2793,9 +2797,9 @@
       for (var y = r; y < r + h; y++) {
         var row = rowOcc(y);
         // the first block claims its whole row band, so nothing sits beside it
-        for (var x = i === 0 ? 0 : c; x < (i === 0 ? K : c + w); x++) row[x] = 1;
+        for (var x = lead ? 0 : c; x < (lead ? K : c + w); x++) row[x] = 1;
       }
-      placed.push({ c: i === 0 ? 0 : c, r: r, w: i === 0 ? K : w, h: h });
+      placed.push({ c: lead ? 0 : c, r: r, w: lead ? K : w, h: h });
       cursor = r;
       prevBottom = r + h;
       if (i === 0) firstCol = c;

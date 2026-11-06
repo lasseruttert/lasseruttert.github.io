@@ -10,6 +10,9 @@ background: keys
 
 {% include timeline.liquid items=site.data.experience group="work" %}
 
-<div class="slot slot-heading"><h2>Education</h2></div>
+<header class="post-header slot slot-lead">
+  <h1 class="post-title">Education</h1>
+  <p class="post-description">Degrees and theses.</p>
+</header>
 
 {% include timeline.liquid items=site.data.education group="edu" %}
