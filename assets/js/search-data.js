@@ -11,7 +11,7 @@ ninja.data = [{
     },
   },{id: "nav-experience",
           title: "Experience",
-          description: "Research positions and degrees.",
+          description: "Research positions and degrees of Lasse Ruttert.",
           section: "Navigation",
           handler: () => {
             window.location.href = "/experience/";
@@ -25,7 +25,7 @@ ninja.data = [{
           },
         },{id: "nav-projects",
           title: "Projects",
-          description: "Research code, benchmarks and experiments.",
+          description: "Research code, benchmarks and experiments by Lasse Ruttert.",
           section: "Navigation",
           handler: () => {
             window.location.href = "/projects/";
