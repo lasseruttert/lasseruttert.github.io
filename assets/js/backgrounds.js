@@ -3830,6 +3830,60 @@ void main(){
     g.connect(audio.destination);
     src.start(t, Math.random() * 0.05, dur + 0.01);
   }
+  // a few slightly inharmonic partials with their own decays: struck glass or ceramic
+  function ring(partials, gain) {
+    var now = audio.currentTime;
+    partials.forEach(function (pt) {
+      var o = audio.createOscillator();
+      o.type = "sine";
+      o.frequency.value = pt[0];
+      var g = audio.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(gain * pt[1], now + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + pt[2]);
+      o.connect(g);
+      g.connect(audio.destination);
+      o.start(now);
+      o.stop(now + pt[2] + 0.02);
+    });
+  }
+  var lastRing = 0;
+  function hoverSound() {
+    if (!audio || audio.state !== "running") return;
+    var now = audio.currentTime;
+    if (now - lastRing < 0.08) return;
+    lastRing = now;
+    var v = 0.94 + Math.random() * 0.12;
+    if (kind === "amber") {
+      // a soft glass tink, ringing a little
+      var f = 1320 * v;
+      ring(
+        [
+          [f, 1, 0.55],
+          [f * 2.32, 0.45, 0.3],
+          [f * 4.25, 0.18, 0.14],
+        ],
+        0.028
+      );
+    } else if (kind === "tiles") {
+      // a short, dull knock on glazed ceramic
+      var c = 520 * v;
+      ring(
+        [
+          [c, 1, 0.16],
+          [c * 2.71, 0.55, 0.09],
+          [c * 5.1, 0.25, 0.05],
+        ],
+        0.04
+      );
+      if (!noiseBuf) {
+        noiseBuf = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.1), audio.sampleRate);
+        var d = noiseBuf.getChannelData(0);
+        for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      burst(now, 0.008, "bandpass", 3200 * v, 1.2, 0.06);
+    }
+  }
   function clack(r) {
     if (!audio || audio.state !== "running") return;
     var now = audio.currentTime;
@@ -3995,6 +4049,7 @@ void main(){
             hov.el.style.zIndex = "";
             hov.amt = 0;
           }
+          if (hov.el !== e) hoverSound();
           hov.el = e;
           hov.i = i;
           hov.target = 1;
@@ -4042,7 +4097,7 @@ void main(){
       },
       { passive: true }
     );
-    if (kind === "keys") {
+    if (kind === "keys" || kind === "amber" || kind === "tiles") {
       // browsers only allow sound after the visitor has clicked or typed once
       ["pointerdown", "keydown"].forEach(function (ev) {
         window.addEventListener(ev, unlockAudio, { passive: true });
