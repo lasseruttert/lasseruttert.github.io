@@ -36,12 +36,133 @@ body.bg-floppy {
     color: #b9b09a;
   }
 }
+// the box on the left; the drive with its window on the right
 .floppy-desk {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1.5rem, 5vw, 4rem);
+}
+.fside {
+  position: sticky;
+  top: 80px;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: clamp(1.5rem, 6vw, 5rem);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  // the box's lid reaches above the disks, keep the drive level with it
+  margin-top: -34px;
+}
+
+/* ---------------------------------------------------------------- the window that reads the disk */
+.win.viewer {
+  position: relative;
+  min-height: 340px;
+  max-width: 720px;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  color: #111;
+}
+.viewer-body {
+  flex: 1;
+  margin: 4px 2px;
+  padding: 18px 20px;
+  min-height: 260px;
+  background: #fff;
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  box-shadow: inset 1px 1px 0 #000;
+  font-size: clamp(15px, 0.6vw + 11px, 18px);
+  line-height: 1.5;
+  h2 {
+    margin: 0 0 0.2em;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1.45em;
+    line-height: 1.2;
+    color: #0a246a;
+  }
+  p {
+    margin: 0 0 0.8em;
+  }
+  .viewer-dates {
+    color: #a4232b;
+  }
+  .viewer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 1.2em;
+  }
+  a:not(.btn95) {
+    color: #0a246a;
+  }
+}
+.viewer-empty {
+  margin: 3em 0;
+  text-align: center;
+  color: #6b6b6b;
+}
+// reading the disk: a progress bar made of blocks
+.viewer-reading {
+  margin: 3em auto;
+  max-width: 320px;
+  text-align: center;
+  color: #333;
+  .bar {
+    display: block;
+    height: 20px;
+    margin-top: 10px;
+    padding: 2px;
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    background: #fff;
+  }
+  .bar i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: repeating-linear-gradient(90deg, #0a246a 0 10px, transparent 10px 12px);
+    animation: disk-read 0.7s steps(14) forwards;
+  }
+}
+@keyframes disk-read {
+  to {
+    width: 100%;
+  }
+}
+.viewer-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 6px;
+  font-size: 13px;
+  color: #333;
+  span {
+    padding: 1px 6px;
+    border: 1px solid;
+    border-color: #808080 #fff #fff #808080;
+  }
+  span:first-child {
+    flex: 1;
+  }
+}
+.viewer-body > *:not(.viewer-empty):not(.viewer-reading) {
+  animation: viewer-in 0.25s ease-out;
+}
+@keyframes viewer-in {
+  from {
+    opacity: 0;
+  }
+}
+// a disk coming back into the box
+.disk.is-back {
+  animation: disk-back 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes disk-back {
+  from {
+    transform: translateY(calc(var(--disk) * -0.5));
+    opacity: 0;
+  }
 }
 
 /* ---------------------------------------------------------------- the box */
@@ -259,7 +380,6 @@ body.bg-floppy {
 .drive {
   position: relative;
   width: min(360px, 86vw);
-  margin-bottom: 6px;
 }
 .drive-face {
   height: 120px;
@@ -344,12 +464,21 @@ body.bg-floppy {
   filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.5));
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .floppy-scene {
     --step: 60px;
   }
   .floppy-desk {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .fside {
+    position: static;
+    width: 100%;
+    margin-top: 0;
     align-items: center;
+  }
+  .win.viewer {
+    width: 100%;
   }
 }
