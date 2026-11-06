@@ -152,6 +152,9 @@ collections:
     output: true
   projects:
     output: true
+  publications:
+    output: true
+    permalink: /publications/:name/
   teachings:
     output: true
 
@@ -235,7 +238,16 @@ defaults:
       path: ""
       type: projects
     values:
-      background: tiles
+      layout: item
+      item_color: "#173a2c"
+      back_url: /projects/
+  - scope:
+      path: ""
+      type: publications
+    values:
+      layout: item
+      item_color: "#3a2412"
+      back_url: /publications/
 
 sass:
   style: compressed

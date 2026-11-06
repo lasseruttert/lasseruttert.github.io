@@ -1,7 +1,7 @@
 <div class="slot-row timeline" data-cols="2">
   {% for org in include.items %}
     {% for role in org.roles %}
-      <div class="tl-card">
+      <div class="tl-card" data-group="{{ include.group }}-{{ org.org | slugify }}">
         <h3>{{ role.title }}</h3>
         <div class="tl-meta">
           {% if org.url -%}

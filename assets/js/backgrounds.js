@@ -2768,6 +2768,11 @@
       // usually start below the previous block; now and then sit beside it
       var besideChance = w <= K * 0.5 ? 0.6 : 0.22;
       var r = i === 0 ? 0 : R() < besideChance ? cursor : prevBottom + (R() < 0.4 ? 1 : 0);
+      // grouped blocks (e.g. roles at one organisation) only share rows with their own group:
+      // a new group starts below everything placed so far
+      var grp = e.getAttribute("data-group");
+      var prevGrp = i > 0 ? slotEls[i - 1].getAttribute("data-group") : null;
+      if (i > 0 && (grp || prevGrp) && grp !== prevGrp) r = maxRow + (R() < 0.5 ? 1 : 0);
       var c = 0;
       for (var guard = 0; guard < 400; guard++, r++) {
         var cands = [];
@@ -2912,16 +2917,28 @@ void cellInfo(vec2 w,out vec2 lp,out vec2 sz,out vec4 meta){
     COMMON +
     `
 uniform sampler2D uFar;uniform sampler2D uNear;uniform vec2 uFol;uniform float uMode;
-float glassH(vec2 w,out float frost,out float plate,out float face){
+float glassH(vec2 w,out float frost,out float plate,out float face,out float tid){
   vec2 lp,sz;vec4 meta;cellInfo(w,lp,sz,meta);
+  // amber blocks overlap their neighbours a little: near an edge, the neighbour that
+  // ranks higher reaches over and this pixel belongs to its rim instead
+  float ext=0.;
+  if(uMode>.5&&meta.x<6.5){
+    float ov=6.;
+    for(int k=0;k<4;k++){
+      vec2 dir=k==0?vec2(-1.,0.):k==1?vec2(1.,0.):k==2?vec2(0.,-1.):vec2(0.,1.);
+      vec2 lpN,szN;vec4 mN;cellInfo(w+dir*ov,lpN,szN,mN);
+      if(distance(w+dir*ov-lpN,w-lp)>.5&&mN.x<6.5&&mN.y>meta.y){lp=lpN-dir*ov;sz=szN;meta=mN;ext=ov;break;}
+    }
+  }
+  tid=meta.w;
   float type=meta.x,seed=meta.y;frost=meta.z/255.;plate=step(6.5,type);
   float r1=hash(vec2(seed,2.)),r2=hash(vec2(seed,3.));
   float e=plate>.5?22.:uMode>.5?clamp(min(sz.x,sz.y)*.17,12.,24.):clamp(min(sz.x,sz.y)*(.1+.04*r1),9.,18.);
   float d=min(min(lp.x,lp.y),min(sz.x-lp.x,sz.y-lp.y))-.6;
   if(uMode>.5){
     float su=sin(3.1416*clamp(lp.x/sz.x,0.,1.)),sv=sin(3.1416*clamp(lp.y/sz.y,0.,1.));
-    float b1=1.+4.*hash(vec2(seed,11.)),b2=1.+4.*hash(vec2(seed,12.)),b3=1.+4.*hash(vec2(seed,13.)),b4=1.+4.*hash(vec2(seed,14.));
-    d=min(min(lp.y-b1*su,sz.y-lp.y-b2*su),min(lp.x-b3*sv,sz.x-lp.x-b4*sv))-.6;
+    float b1=.5+2.5*hash(vec2(seed,11.)),b2=.5+2.5*hash(vec2(seed,12.)),b3=.5+2.5*hash(vec2(seed,13.)),b4=.5+2.5*hash(vec2(seed,14.));
+    d=min(min(lp.y-b1*su,sz.y-lp.y-b2*su),min(lp.x-b3*sv,sz.x-lp.x-b4*sv))-.6+ext;
   }
   d+=(vn(vec2(seed*7.3+(lp.x+lp.y)*.05,seed))-.5)*1.3;
   float rim=1.-pow(1.-smoothstep(0.,e*.75,d),2.);
@@ -2956,7 +2973,8 @@ void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);vec2 pv=w-vec2(0.,uScrollY);
   float lift,hs;w=hoverWarp(w,lift,hs);
   float frost,plate,face;
-  float h=glassH(w,frost,plate,face);
+  float tid;
+  float h=glassH(w,frost,plate,face,tid);
   vec3 n=normalize(vec3(-dFdx(h)*uDpr*9.6,dFdy(h)*uDpr*9.6,1.));
   float t=uTime;
   vec2 sway=vec2(sin(w.y*.011+t*.9)+.6*sin(w.y*.027+w.x*.006+t*1.7),.7*cos(w.x*.009+t*.7+w.y*.004))*4.;
@@ -2971,8 +2989,7 @@ void main(){
   vec3 col=mix(far,nr.rgb,nr.a);
   if(uMode>.5){
     // amber: clear coloured glass, every block its own tint, rims deeper in colour
-    vec2 lp2,sz2;vec4 mt;cellInfo(w,lp2,sz2,mt);
-    int ti=int(mt.w+.5);
+    int ti=int(tid+.5);
     vec3 tint=ti==0?vec3(1.,.52,.1):ti==1?vec3(1.,.76,.28):ti==2?vec3(.62,.32,.14):ti==3?vec3(.58,.74,.4):ti==4?vec3(.74,.58,.42):vec3(.98,.86,.66);
     if(plate>.5)tint=vec3(.6,.3,.1);
     col=col*tint*(1.3+.3*edge);
@@ -3720,6 +3737,9 @@ void main(){
   }
 
   function relayout() {
+    // any relayout first makes sure the viewport resources match the current width:
+    // the resize and content-size handlers share one timer, so either may run alone
+    if (canvas.clientWidth !== css.w) buildViewport();
     buildWorld();
     scrolled = true;
     kick();
@@ -3841,7 +3861,6 @@ void main(){
     }
     window.addEventListener("resize", function () {
       soon(function () {
-        if (canvas.clientWidth !== css.w || canvas.clientHeight !== css.h) buildViewport();
         relayout();
       }, 200);
     });

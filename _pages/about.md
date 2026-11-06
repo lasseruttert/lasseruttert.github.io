@@ -33,16 +33,3 @@ background: glass
 <section class="slot">
   <p>Have fun looking around :)</p>
 </section>
-
-<div class="slot-row">
-  <a href="{{ '/experience/' | relative_url }}"><h3>Graduate Research Assistant</h3><p>University of Bonn · since Nov 2026</p></a>
-  <a href="{{ '/experience/' | relative_url }}"><h3>M.Sc. Computer Science</h3><p>University of Bonn · since Apr 2026</p></a>
-</div>
-
-<div class="slot-row slot-links">
-  <a href="{{ '/experience/' | relative_url }}"><h3>Experience</h3></a>
-  <a href="{{ '/publications/' | relative_url }}"><h3>Publications</h3></a>
-  <a href="{{ '/projects/' | relative_url }}"><h3>Projects</h3></a>
-  <a href="{{ '/blog/' | relative_url }}"><h3>Blog</h3></a>
-  <div class="slot-social">{% social_links %}</div>
-</div>

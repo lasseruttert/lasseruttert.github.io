@@ -1,0 +1,73 @@
+---
+layout: default
+---
+{% comment %}
+  A plain detail page for a publication or a project: one flat colour, the title,
+  a meta line, the description and links. The colour comes from item_color.
+{% endcomment %}
+<style>
+  body {
+    background: {{ page.item_color | default: '#3a2412' }};
+    font-family: "Pixelify Sans", "Courier New", monospace;
+  }
+  .item-page {
+    max-width: 760px;
+    padding: 2rem 0 6rem;
+  }
+  .item-page .post-title {
+    font-family: "Pixelify Sans", "Courier New", monospace;
+    font-weight: 600;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+  }
+  .item-page .item-meta {
+    color: var(--global-theme-color);
+    margin-bottom: 1.5rem;
+  }
+  .item-page a {
+    color: #f2c56b;
+  }
+  .item-page a:hover {
+    color: #ffe0a0;
+  }
+  .item-page .item-meta {
+    color: #e6c79a;
+  }
+  .item-page .item-links a {
+    display: inline-block;
+    margin: 0 1.25rem 0.75rem 0;
+  }
+</style>
+
+<div class="post item-page">
+  <header class="post-header">
+    <h1 class="post-title">{{ page.title }}</h1>
+    <p class="item-meta">
+      {% if page.venue %}{{ page.venue }}{% endif %}
+      {% if page.venue and page.date_label %} · {% endif %}
+      {% if page.date_label %}{{ page.date_label }}{% endif %}
+      {% if page.dates %}{{ page.dates }}{% endif %}
+    </p>
+  </header>
+
+  <article>
+    {% if page.authors %}
+      <p>{{ page.authors }}</p>
+    {% endif %}
+    {% if page.description %}
+      <p>{{ page.description }}</p>
+    {% endif %}
+    {{ content }}
+
+    <p class="item-links">
+      {% if page.paper -%}
+        <a href="{{ page.paper }}">Paper</a>
+      {%- endif %}
+      {% if page.github -%}
+        <a href="{{ page.github }}">Code on GitHub</a>
+      {%- endif %}
+    </p>
+    {% if page.back_url %}
+      <p><a href="{{ page.back_url | relative_url }}">← Back</a></p>
+    {% endif %}
+  </article>
+</div>

@@ -12,18 +12,10 @@ background: tiles
 
 <div class="slot-row">
   {% for project in projects %}
-    {% if project.redirect %}
-      <a href="{{ project.redirect }}">
-        <h3>{{ project.title }}</h3>
-        {% if project.dates %}<div class="tl-meta">{{ project.dates }}</div>{% endif %}
-        <p>{{ project.description }}</p>
-      </a>
-    {% else %}
-      <div>
-        <h3>{{ project.title }}</h3>
-        {% if project.dates %}<div class="tl-meta">{{ project.dates }}</div>{% endif %}
-        <p>{{ project.description }}</p>
-      </div>
-    {% endif %}
+    <a href="{{ project.url | relative_url }}">
+      <h3>{{ project.title }}</h3>
+      {% if project.dates %}<div class="tl-meta">{{ project.dates }}</div>{% endif %}
+      <p>{{ project.description }}</p>
+    </a>
   {% endfor %}
 </div>
