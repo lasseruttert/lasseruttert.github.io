@@ -1,21 +1,11 @@
 ---
-layout: page
+layout: default
 permalink: /projects/
 title: Projects
-description: Research code, benchmarks and experiments.
+description: Research code, benchmarks and experiments by Lasse Ruttert.
 nav: true
 nav_order: 4
-background: amber
+scene: floppy
 ---
 
-{% assign projects = site.projects | sort: "importance" %}
-
-<div class="slot-row">
-  {% for project in projects %}
-    <a href="{{ project.url | relative_url }}">
-      <h3>{{ project.title }}</h3>
-      {% if project.dates %}<div class="tl-meta">{{ project.dates }}</div>{% endif %}
-      <p>{{ project.description }}</p>
-    </a>
-  {% endfor %}
-</div>
+{% include floppies.liquid %}

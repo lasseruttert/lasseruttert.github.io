@@ -2,7 +2,7 @@
 layout: default
 title: About
 permalink: /
-desk: true
+scene: desk
 chat_title: Chat with Lasse
 messages:
   - Hi, I'm Lasse Ruttert.

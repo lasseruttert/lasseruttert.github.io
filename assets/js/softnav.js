@@ -116,6 +116,15 @@
       });
   }
 
+  // for page scripts that animate first and then open a link (the floppy drive)
+  window.__softGo = function (href) {
+    var a = document.createElement("a");
+    a.href = href;
+    var u = target(a);
+    if (u && document.body.classList.contains("has-bg")) go(u, true);
+    else location.href = href;
+  };
+
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest("a");
     var u = target(a, e);

@@ -17,7 +17,7 @@
 
   <!-- Body -->
   {% assign bg = page.background | default: layout.background %}
-  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}{% if bg %} has-bg bg-{{ bg }}{% elsif page.item_color %} has-bg bg-item bg-item-{{ page.collection }}{% elsif page.desk %} has-bg bg-desk{% endif %}">
+  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}{% if bg %} has-bg bg-{{ bg }}{% elsif page.item_color %} has-bg bg-item bg-item-{{ page.collection }}{% elsif page.scene %} has-bg bg-{{ page.scene }}{% endif %}">
     {% if bg %}
       <canvas id="bg-canvas" data-bg="{{ bg }}" aria-hidden="true"></canvas>
     {% endif %}
@@ -58,8 +58,9 @@
     {% if bg %}
       <script data-page-script src="{{ '/assets/js/backgrounds.js' | relative_url | bust_file_cache }}"></script>
     {% endif %}
-    {% if page.desk %}
-      <script data-page-script src="{{ '/assets/js/desk.js' | relative_url | bust_file_cache }}"></script>
+    {% if page.scene %}
+      {% capture scene_js %}/assets/js/{{ page.scene }}.js{% endcapture %}
+      <script data-page-script src="{{ scene_js | relative_url | bust_file_cache }}"></script>
     {% endif %}
     {% include scripts.liquid %}
     <script defer src="{{ '/assets/js/softnav.js' | relative_url | bust_file_cache }}"></script>

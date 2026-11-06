@@ -1,0 +1,29 @@
+{% comment %} One printout section: every role of every organisation in include.items. {% endcomment %}
+{% for org in include.items %}
+  {% for role in org.roles %}
+    <article class="entry">
+      <h3 class="pl">{{ role.title | upcase }}</h3>
+      <p class="pl meta">
+        {% if org.url -%}
+          <a href="{{ org.url }}">{{ org.org }}</a>
+        {%- else -%}
+          {{- org.org -}}
+        {%- endif %}
+        &middot; {{ role.dates }}
+      </p>
+      {% if role.description %}
+        <p class="pl">{{ role.description }}</p>
+      {% endif %}
+      {% if role.description2 %}
+        <p class="pl">{{ role.description2 }}</p>
+      {% endif %}
+      {% if role.highlights %}
+        <ul>
+          {% for h in role.highlights %}
+            <li class="pl">{{ h }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </article>
+  {% endfor %}
+{% endfor %}

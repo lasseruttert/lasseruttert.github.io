@@ -1,0 +1,47 @@
+{% comment %}
+  Projects: a box of 3.5" floppy disks, one per project, standing like an index.
+  floppy.js lifts a disk when the pointer is on it and, on a click, flies it into
+  the drive before the project page opens. Plain links without JavaScript.
+{% endcomment %}
+{% assign projects = site.projects | sort: 'importance' %}
+<section class="floppy-scene" data-floppies>
+  <header class="scene-head">
+    <h1>{{ page.title }}</h1>
+    <p>Pick a disk and put it in the drive.</p>
+  </header>
+
+  <div class="floppy-desk">
+    <div class="fbox" style="--n: {{ projects.size }}">
+      <div class="fbox-lid" aria-hidden="true"></div>
+      <div class="fbox-disks">
+        {% for project in projects %}
+          <a class="disk c{{ forloop.index0 | modulo: 7 }}" href="{{ project.url | relative_url }}" style="--i: {{ forloop.index0 }}">
+            <span class="disk-label">
+              <span class="disk-strip" aria-hidden="true"><b>HD</b></span>
+              <span class="disk-title">{{ project.title }}</span>
+              {% if project.dates -%}
+                <span class="disk-dates">{{ project.dates }}</span>
+              {%- endif %}
+              <span class="disk-desc">{{ project.description }}</span>
+            </span>
+            <span class="disk-shutter" aria-hidden="true"><span></span></span>
+            <span class="disk-wp" aria-hidden="true"></span>
+          </a>
+        {% endfor %}
+      </div>
+      <div class="fbox-front" aria-hidden="true"><span>PROJECTS &middot; 3.5&quot; 1.44 MB</span></div>
+    </div>
+
+    <div class="drive" aria-hidden="true">
+      <div class="drive-face">
+        <span class="drive-slot" data-slot><span class="drive-flap"></span></span>
+        <span class="drive-row">
+          <span class="drive-led" data-led></span>
+          <span class="drive-name">A:</span>
+          <span class="drive-eject"></span>
+        </span>
+      </div>
+      <span class="drive-foot"></span>
+    </div>
+  </div>
+</section>
