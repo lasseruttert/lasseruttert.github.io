@@ -88,6 +88,16 @@ ninja.data = [{
           description: "A two-stage pipeline: an LLM abstracts premises and conclusions into domain-independent logical forms, then the logical validity of the normalized form is classified. Built as part of an NLP course at the University of Bonn.",
           section: "Projects",handler: () => {
               window.location.href = "/projects/semeval_2026_task11/";
+            },},{id: "publications-reinforcement-learning-can-amplify-emergent-misalignment-from-harmless-rewards",
+          title: 'Reinforcement Learning Can Amplify Emergent Misalignment from Harmless Rewards',
+          description: "",
+          section: "Publications",handler: () => {
+              window.location.href = "/publications/emnlp-2026-emergent-misalignment/";
+            },},{id: "publications-the-overfitters-at-touché-joint-causality-extraction-with-deberta-v3",
+          title: 'The Overfitters at Touché: Joint Causality Extraction with DeBERTa-v3',
+          description: "",
+          section: "Publications",handler: () => {
+              window.location.href = "/publications/clef-2026-touche/";
             },},{id: "teachings-data-science-fundamentals",
           title: 'Data Science Fundamentals',
           description: "This course covers the foundational aspects of data science, including data collection, cleaning, analysis, and visualization. Students will learn practical skills for working with real-world datasets.",
