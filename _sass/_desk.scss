@@ -1,6 +1,6 @@
 /*******************************************************************************
- * About page: a pixel-art CRT monitor showing a retro desktop with a chat window.
- * desk.js reveals the messages while the page scrolls; the monitor stays put.
+ * About page: a full-viewport pixel-art CRT monitor showing a retro desktop
+ * with a chat window. desk.js reveals the messages while the page scrolls.
  ******************************************************************************/
 
 body.bg-desk {
@@ -29,51 +29,45 @@ body.bg-desk {
   image-rendering: pixelated;
 }
 
-/* ---------------------------------------------------------------- the pixel CRT monitor */
+/* ---------------------------------------------------------------- the full-screen pixel CRT monitor */
 .crt {
   position: sticky;
   top: 0;
+  width: 100vw;
   height: 100vh;
   height: 100dvh;
-  padding: 1.2vmin 2vmin 0.8vmin;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  // subtle phosphor glow on the wall behind the monitor + desk surface at bottom
-  background:
-    linear-gradient(180deg, transparent 0%, transparent 91%, #231d17 91%, #1b1612 100%),
-    radial-gradient(ellipse 68% 58% at 50% 44%, rgba(56, 196, 180, 0.18), transparent 75%);
+  align-items: stretch;
+  justify-content: stretch;
+  background: #141210;
 }
 
-// outer plastic casing with stepped pixel corners and hard pixel bevels
+// outer plastic casing spanning the full width and height of the screen
 .crt-bezel {
-  width: min(1180px, 96vw);
+  width: 100%;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 16px 20px 0;
+  padding: 16px 22px 0;
   border-radius: 0;
   background:
-    // top ventilation slots
-    repeating-linear-gradient(90deg, transparent 0 10px, #8e856d 10px 14px) 50% 5px / 240px 4px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 10px, #8e856d 10px 14px) 50% 5px / 320px 4px no-repeat,
     #ddd5bf;
   border: 4px solid #1c1a16;
   box-shadow:
     inset 4px 4px 0 #f4efe0,
-    inset -4px -4px 0 #9e957c,
-    0 4px 0 #8a8168,
-    0 8px 0 #1c1a16,
-    0 12px 0 rgba(0, 0, 0, 0.45);
+    inset -4px -4px 0 #9e957c;
 }
 
-// inner sloped recess holding the glass tube
+// inner sloped recess holding the glass tube, illuminated by animated phosphor light
 .crt-recess {
   flex: 1;
   display: flex;
   min-height: 0;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-radius: 0;
   background: #a9a086;
   border: 4px solid #6b634e;
@@ -92,7 +86,32 @@ body.bg-desk {
   border: 4px solid #181714;
   box-shadow:
     inset 0 0 0 2px #0b2e2c,
-    0 0 16px rgba(64, 215, 198, 0.25);
+    0 0 22px 4px rgba(64, 230, 210, 0.36);
+  animation: crt-glow 4.5s infinite ease-in-out;
+}
+
+@keyframes crt-glow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 2px #0b2e2c,
+      0 0 18px 3px rgba(64, 230, 210, 0.28);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 2px #144945,
+      0 0 32px 8px rgba(80, 255, 230, 0.48);
+  }
+  72% {
+    box-shadow:
+      inset 0 0 0 2px #0b2e2c,
+      0 0 14px 2px rgba(64, 230, 210, 0.22);
+  }
+  74% {
+    box-shadow:
+      inset 0 0 0 2px #185954,
+      0 0 28px 6px rgba(90, 255, 235, 0.44);
+  }
 }
 
 .crt-screen::after {
@@ -100,28 +119,74 @@ body.bg-desk {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 65% 60% at 50% 45%, rgba(210, 255, 248, 0.06), transparent 72%);
+  background: radial-gradient(ellipse 68% 62% at 50% 45%, rgba(190, 255, 245, 0.12), transparent 72%);
   mix-blend-mode: screen;
+  animation: crt-bloom 3.8s infinite steps(4);
+}
+
+@keyframes crt-bloom {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  40% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.92;
+  }
 }
 
 .crt-glass {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  overflow: hidden;
   background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, transparent 28%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 28%),
     radial-gradient(ellipse at 50% 50%, transparent 72%, rgba(0, 0, 0, 0.38) 100%);
   box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55);
+
+  // animated CRT refresh scanbeam sweeping vertically across the tube
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -18%;
+    height: 18%;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(160, 255, 245, 0.08) 45%,
+      rgba(220, 255, 250, 0.16) 50%,
+      rgba(160, 255, 245, 0.06) 55%,
+      transparent 100%
+    );
+    animation: crt-scanbeam 6.5s linear infinite;
+  }
+}
+
+@keyframes crt-scanbeam {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(660%);
+  }
 }
 
 .crt-chin {
-  height: 44px;
-  min-height: 40px;
+  height: 46px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px 4px;
+  padding: 0 10px 4px;
   color: #4f493a;
 }
 
@@ -150,7 +215,7 @@ body.bg-desk {
 
 .crt-vents {
   flex: 1;
-  max-width: 220px;
+  max-width: 280px;
   height: 10px;
   margin: 0 16px;
   background: repeating-linear-gradient(90deg, #8e856d 0 4px, #f4efe0 4px 6px, transparent 6px 12px);
@@ -174,7 +239,7 @@ body.bg-desk {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
+  width: 36px;
   height: 22px;
   background: #d2c9b0;
   border: 2px solid;
@@ -182,41 +247,43 @@ body.bg-desk {
   box-shadow: 2px 2px 0 #1c1a16;
 }
 
+// animated monitor power light
 .crt-led {
-  width: 10px;
-  height: 6px;
+  width: 12px;
+  height: 7px;
   border-radius: 0;
   background: #35ff5c;
   border: 1px solid #0e4a1a;
-  box-shadow: 0 0 6px #35ff5c;
+  box-shadow:
+    0 0 8px #35ff5c,
+    0 0 16px rgba(53, 255, 92, 0.75);
+  animation: crt-led-pulse 2.4s infinite steps(3);
 }
 
-// pixel monitor stand neck & swivel base
-.crt-stand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 4px;
-}
-.crt-neck {
-  width: 180px;
-  height: 12px;
-  background: repeating-linear-gradient(180deg, #b5ac93 0 4px, #968d74 4px 8px);
-  border-left: 4px solid #1c1a16;
-  border-right: 4px solid #1c1a16;
-  box-shadow:
-    inset 4px 0 0 #d6ceb6,
-    inset -4px 0 0 #756d58;
-}
-.crt-base {
-  width: 320px;
-  height: 14px;
-  background: #cfc7b0;
-  border: 4px solid #1c1a16;
-  box-shadow:
-    inset 4px 2px 0 #f4efe0,
-    inset -4px -2px 0 #8e856d,
-    0 4px 0 rgba(0, 0, 0, 0.6);
+@keyframes crt-led-pulse {
+  0%,
+  100% {
+    background: #35ff5c;
+    box-shadow:
+      0 0 6px #35ff5c,
+      0 0 14px rgba(53, 255, 92, 0.65);
+  }
+  45% {
+    background: #7dff96;
+    box-shadow:
+      0 0 12px #5eff7c,
+      0 0 24px rgba(94, 255, 124, 0.95);
+  }
+  82% {
+    background: #22c944;
+    box-shadow: 0 0 4px #22c944;
+  }
+  86% {
+    background: #6bff88;
+    box-shadow:
+      0 0 10px #35ff5c,
+      0 0 20px rgba(53, 255, 92, 0.85);
+  }
 }
 
 /* ---------------------------------------------------------------- the desktop */
@@ -389,8 +456,8 @@ body.bg-desk {
 .chat {
   top: 10px;
   bottom: 42px;
-  left: max(106px, calc(50% - 430px));
-  width: min(880px, calc(100% - 122px));
+  left: max(110px, calc(50% - 520px));
+  width: min(1060px, calc(100% - 130px));
 }
 
 .chat-head {
@@ -460,7 +527,7 @@ body.bg-desk {
 // incoming pixel-art chat bubbles — high contrast dark text on light pixel box
 .msg {
   position: relative;
-  max-width: min(90%, 740px);
+  max-width: min(90%, 820px);
   margin: 0 0 0 6px;
   padding: 5px 10px 6px;
   border-radius: 0;
@@ -696,18 +763,13 @@ body.bg-desk {
 
 /* ---------------------------------------------------------------- small screens */
 @media (max-width: 720px) {
-  .crt {
-    padding: 6px 4px 2px;
-  }
   .crt-bezel {
-    width: 98vw;
     padding: 8px 8px 0;
   }
   .crt-recess {
     padding: 6px;
   }
-  .crt-vents,
-  .crt-stand {
+  .crt-vents {
     display: none;
   }
   .os-icons {

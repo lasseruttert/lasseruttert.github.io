@@ -74,6 +74,10 @@
     replace("body > footer", doc);
     document.title = doc.title;
     document.body.className = nb.className;
+    document.body.style.paddingTop = "";
+    var nav = document.getElementById("navbar"),
+      pr = document.getElementById("progress");
+    if (nav && pr) pr.style.top = nav.offsetHeight + "px";
     window.scrollTo(0, 0);
 
     // start the new page's own scripts (its background, the About chat, ...)

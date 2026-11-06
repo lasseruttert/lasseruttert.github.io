@@ -7,6 +7,7 @@ body.bg-print {
   --global-theme-color: #e9c46a;
   --global-hover-color: #ffdf8e;
   --global-text-color: #efe8d6;
+  padding-top: 0 !important;
   padding-bottom: 0 !important;
   overflow-x: hidden;
   background:
@@ -27,9 +28,10 @@ body.bg-print {
   --paper-w: min(820px, calc(100vw - 24px));
   --lh: 1.6em;
   --printer-h: 176px;
+  --slot-offset: 66px;
   position: relative;
-  // start with the header and top section already emerging from the printer slot
-  padding-top: 22vh;
+  // start literally at the bottom of the screen, fully inside the printer housing
+  padding-top: calc(100vh - var(--printer-h) + var(--slot-offset));
   font-family: "DotGothic16", "Pixelify Sans", "Courier New", monospace;
   image-rendering: pixelated;
 }
@@ -38,7 +40,7 @@ body.bg-print {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(var(--printer-h) + 14px);
+  bottom: calc(var(--printer-h) + 28px);
   z-index: 4;
   margin: 0;
   pointer-events: none;
@@ -111,7 +113,7 @@ body.bg-print {
 
 .sheet {
   --global-text-color: #14131a;
-  padding: 2rem 0 calc(var(--printer-h) + 4.5rem);
+  padding: 0.75rem 0 calc(var(--printer-h) + 4.5rem);
   font-size: clamp(14.5px, 1.05vw + 7px, 17.5px);
   line-height: var(--lh);
   letter-spacing: 0.02em;
@@ -236,19 +238,27 @@ body.bg-print {
 }
 
 /* ---------------------------------------------------------------- the fixed pixel-art printer */
+.printer-back,
 .printer {
   position: fixed;
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
-  z-index: 3;
   width: min(980px, calc(100vw - 8px));
   height: var(--printer-h);
   pointer-events: none;
   image-rendering: pixelated;
 }
 
-// sloped top deck with side louvers and smoked acrylic cover
+.printer-back {
+  z-index: 1;
+}
+
+.printer {
+  z-index: 3;
+}
+
+// sloped top deck with side louvers and smoked acrylic cover (sits behind the emerging paper)
 .printer-top {
   position: absolute;
   left: 24px;
@@ -299,8 +309,8 @@ body.bg-print {
   border-bottom: 1px solid rgba(255, 230, 170, 0.55);
 }
 
-// dark throat slot where the paper emerges and the carriage head travels
-.printer-slot {
+// dark throat cavity behind the paper
+.printer-slot-bg {
   position: absolute;
   left: 12px;
   right: 12px;
@@ -311,6 +321,18 @@ body.bg-print {
   box-shadow:
     inset 0 4px 0 #070605,
     inset 0 -2px 0 #3a362e;
+}
+
+// foreground carriage slot: transparent center so the paper is visible under the print head and rail
+.printer-slot {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 32px;
+  height: 28px;
+  background: transparent;
+  border-left: 4px solid #181612;
+  border-right: 4px solid #181612;
 }
 
 // steel guide rail inside the slot
@@ -494,7 +516,7 @@ body.bg-print {
   }
   .printout {
     --printer-h: 140px;
-    padding-top: 18vh;
+    --slot-offset: 52px;
   }
   .sheet {
     padding-bottom: calc(140px + 3.5rem);
@@ -502,6 +524,7 @@ body.bg-print {
   .printer-top {
     height: 26px;
   }
+  .printer-slot-bg,
   .printer-slot {
     top: 22px;
     height: 22px;

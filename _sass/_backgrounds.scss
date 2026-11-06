@@ -29,6 +29,10 @@ body.bg-live::after {
   background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.38) 100%);
 }
 
+body.fixed-top-nav.has-bg:not(.bg-desk):not(.bg-print) {
+  padding-top: 72px !important;
+}
+
 body.has-bg {
   --panel-bg: rgba(14, 12, 10, 0.82);
   --panel-border: rgba(255, 255, 255, 0.09);
@@ -49,7 +53,8 @@ body.has-bg {
   }
 
   .navbar {
-    background-color: rgba(10, 9, 8, 0.72);
+    z-index: 1030;
+    background-color: rgba(10, 9, 8, 0.78);
     opacity: 1;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

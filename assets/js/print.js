@@ -10,7 +10,7 @@
   var root = document.querySelector("[data-printout]");
   if (!root) return;
   var lines = [].slice.call(root.querySelectorAll(".pl"));
-  var printer = root.querySelector(".printer");
+  var paper = root.querySelector(".paper");
   var slot = root.querySelector(".printer-slot");
   var head = root.querySelector(".printer-head");
   var online = root.querySelector("[data-online]");
@@ -98,77 +98,115 @@
   }
 
   // ---------------------------------------------------------------- printing
-  var queued = 0,
-    busy = false;
-  function headY() {
-    return slot.getBoundingClientRect().top + 4;
-  }
-  function check() {
-    if (dead) return;
-    if (window.scrollY > 20) root.classList.add("is-going");
-    var y = headY();
-    var atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 16;
-    if (atBottom) {
-      queued = lines.length;
-    } else {
-      while (queued < lines.length && lines[queued].getBoundingClientRect().top <= y) queued++;
-    }
-    if (!busy) run();
-  }
-  var printed = 0;
-  function run() {
-    if (dead || printed >= queued) {
-      busy = false;
-      if (online) online.classList.remove("on");
-      return;
-    }
-    busy = true;
-    if (online) online.classList.add("on");
-    printLine(lines[printed++], run);
+  // The paper starts fully inside the printer at scrollY = 0 and can only rise
+  // out of the slot as each row is printed (fedPx), so scrolling faster never
+  // outruns the print head.
+  var fedPx = 0,
+    printed = 0,
+    curEl = null,
+    curRow = 0,
+    curRows = 0,
+    busy = false,
+    allPrinted = false;
+
+  function headOffset() {
+    var pt = parseFloat(getComputedStyle(root).paddingTop) || 0;
+    var sy = slot.getBoundingClientRect().top + 12;
+    return Math.max(0, pt - sy);
   }
 
-  function printLine(el, done) {
-    var w = el.offsetWidth,
-      h = el.offsetHeight;
-    var lh = parseFloat(getComputedStyle(el).lineHeight) || 24;
-    var rows = Math.max(1, Math.round(h / lh));
-    var lag = queued - printed; // lines waiting after this one
-    var per = lag > 6 ? 28 : lag > 2 ? 70 : 170; // ms per printed row
+  function syncPaper() {
+    if (!paper) return;
+    if (allPrinted || window.scrollY <= fedPx) {
+      paper.style.transform = "";
+    } else {
+      paper.style.transform = "translateY(" + Math.round(window.scrollY - fedPx) + "px)";
+    }
+  }
+
+  function poly(w, x, y0, y1) {
+    return "polygon(0 0," + w + "px 0," + w + "px " + y0 + "px," + x + "px " + y0 + "px," + x + "px " + y1 + "px,0 " + y1 + "px)";
+  }
+
+  function check() {
+    if (dead) return;
+    if (window.scrollY > 10) root.classList.add("is-going");
+    if (allPrinted || busy) {
+      syncPaper();
+      return;
+    }
+
+    if (!curEl) {
+      if (printed >= lines.length) {
+        allPrinted = true;
+        if (online) online.classList.remove("on");
+        syncPaper();
+        return;
+      }
+      curEl = lines[printed];
+      var lh = parseFloat(getComputedStyle(curEl).lineHeight) || 24;
+      curRows = Math.max(1, Math.round(curEl.offsetHeight / lh));
+      curRow = 0;
+    }
+
+    var w = curEl.offsetWidth,
+      h = curEl.offsetHeight;
+    var y0 = Math.round((curRow * h) / curRows),
+      y1 = Math.round(((curRow + 1) * h) / curRows);
+    var ho = headOffset();
+    var rowStart = ho + curEl.offsetTop + y0;
+    var rowEnd = ho + curEl.offsetTop + y1;
+
+    // allow blank margin before the next text row to feed up to the print head
+    if (window.scrollY > fedPx && fedPx < rowStart) {
+      fedPx = Math.min(window.scrollY, rowStart);
+    }
+
+    if (window.scrollY < rowEnd - 4) {
+      if (online) online.classList.remove("on");
+      syncPaper();
+      return;
+    }
+
+    // feed this single row into the slot and lock the paper there while printing it
+    fedPx = Math.max(fedPx, Math.min(window.scrollY, rowEnd));
+    busy = true;
+    if (online) online.classList.add("on");
+    syncPaper();
+
+    var ahead = Math.max(0, window.scrollY - fedPx);
+    var per = ahead > 500 ? 22 : ahead > 220 ? 42 : ahead > 80 ? 75 : 135;
+    var dur = per * (curRows === 1 ? Math.max(0.35, Math.min(1, (curEl.scrollWidth || w) / Math.max(w, 1))) : 1);
+
     var sr = slot.getBoundingClientRect(),
-      er = el.getBoundingClientRect();
+      er = curEl.getBoundingClientRect();
     var x0 = er.left - sr.left - 23,
       x1 = er.right - sr.left - 23;
-    var r = 0;
-    function poly(x, y0, y1) {
-      return "polygon(0 0," + w + "px 0," + w + "px " + y0 + "px," + x + "px " + y0 + "px," + x + "px " + y1 + "px,0 " + y1 + "px)";
-    }
-    (function row() {
+
+    buzz(dur / 1000, 0.75);
+    var el = curEl;
+    var a = el.animate([{ clipPath: poly(w, 0, y0, y1) }, { clipPath: poly(w, w, y0, y1) }], {
+      duration: dur,
+      easing: "steps(" + Math.max(6, Math.round(dur / 12)) + ")",
+      fill: "forwards",
+    });
+    head.animate([{ transform: "translateX(" + x0 + "px)" }, { transform: "translateX(" + x1 + "px)" }], { duration: dur, fill: "forwards" });
+    a.onfinish = function () {
       if (dead) return;
-      if (r >= rows) {
+      curRow++;
+      feed();
+      if (curRow >= curRows) {
         el.classList.add("is-done");
         el.getAnimations().forEach(function (an) {
           an.cancel();
         });
-        done();
-        return;
+        curEl = null;
+        printed++;
       }
-      var y0 = Math.round((r * h) / rows),
-        y1 = Math.round(((r + 1) * h) / rows);
-      // how much of the row carries ink decides how long the head takes
-      var dur = per * (rows === 1 ? Math.max(0.35, Math.min(1, (el.scrollWidth || w) / Math.max(w, 1))) : 1);
-      buzz(dur / 1000, 0.75);
-      var a = el.animate([{ clipPath: poly(0, y0, y1) }, { clipPath: poly(w, y0, y1) }], {
-        duration: dur,
-        easing: "steps(" + Math.max(6, Math.round(dur / 12)) + ")",
-        fill: "forwards",
-      });
-      head.animate([{ transform: "translateX(" + x0 + "px)" }, { transform: "translateX(" + x1 + "px)" }], { duration: dur, fill: "forwards" });
-      a.onfinish = function () {
-        r++;
-        feed();
-        setTimeout(row, lag > 2 ? 0 : 25);
-      };
-    })();
+      busy = false;
+      var lag = Math.max(0, window.scrollY - fedPx);
+      setTimeout(check, lag > 80 ? 0 : 18);
+    };
   }
 
   on(window, "scroll", check, { passive: true });
@@ -177,6 +215,5 @@
     on(window, ev, unlock, { passive: true });
   });
   unlock();
-  // the lines already out of the printer when the page opens print right away
-  setTimeout(check, 250);
+  check();
 })();

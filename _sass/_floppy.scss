@@ -7,62 +7,63 @@ body.bg-floppy {
   --global-theme-color: #e9c46a;
   --global-hover-color: #ffdf8e;
   --global-text-color: #efe8d6;
+  padding-top: 72px !important;
   padding-bottom: 0 !important;
   background:
-    radial-gradient(ellipse 75% 60% at 50% 35%, rgba(255, 224, 165, 0.09), transparent 72%),
+    radial-gradient(ellipse 85% 65% at 50% 35%, rgba(255, 224, 165, 0.09), transparent 72%),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 2px, transparent 2px 4px), linear-gradient(180deg, #24201c 0%, #151311 100%);
   min-height: 100vh;
   > footer {
     display: none;
   }
   > .container[role="main"] {
-    max-width: min(1420px, 96vw);
+    max-width: none;
     width: 100%;
-    padding: 0 20px;
-    margin-top: 1.5rem !important;
+    padding: 0 clamp(24px, 4vw, 64px);
+    margin-top: 1rem !important;
   }
 }
 
 .floppy-scene {
-  --disk: 300px;
-  --step: 74px;
-  padding: 0.75rem 0 4rem;
+  --disk: clamp(310px, 22vw, 370px);
+  --step: 76px;
+  padding: 0.5rem 0 4rem;
   font-family: "Pixelify Sans", "Courier New", monospace;
   color: #efe8d6;
   image-rendering: pixelated;
 }
 
 .scene-head {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   h1 {
     margin: 0;
     font-family: inherit;
     font-weight: 700;
-    font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+    font-size: clamp(2rem, 3.2vw, 2.6rem);
     letter-spacing: 0.04em;
     color: #efe8d6 !important;
   }
   p {
-    margin: 0.2rem 0 0;
+    margin: 0.25rem 0 0;
     color: #b9b09a !important;
-    font-size: 1.02rem;
+    font-size: 1.05rem;
   }
 }
 
-// compact disk box column on the left; wide drive + viewer window column on the right
+// disk box column on the left; wide full-bleed drive + viewer window column on the right
 .floppy-desk {
   display: grid;
-  grid-template-columns: 336px minmax(0, 1fr);
+  grid-template-columns: calc(var(--disk) + 40px) minmax(0, 1fr);
   align-items: start;
-  gap: clamp(1.5rem, 3vw, 2.75rem);
+  gap: clamp(2rem, 3.5vw, 4rem);
 }
 
 .fside {
   position: sticky;
-  top: 72px;
+  top: 76px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   min-width: 0;
   width: 100%;
 }
@@ -74,7 +75,7 @@ body.bg-floppy {
   position: relative;
   width: 100%;
   max-width: none;
-  min-height: 540px;
+  min-height: clamp(580px, 74vh, 840px);
   font-family: "Pixelify Sans", "Courier New", monospace;
   color: #141418 !important;
   background: #c3c3c3;
@@ -90,8 +91,8 @@ body.bg-floppy {
   --global-text-color: #141418;
   flex: 1;
   margin: 4px 3px;
-  padding: 24px 28px;
-  min-height: 440px;
+  padding: clamp(24px, 2.5vw, 36px) clamp(28px, 3vw, 44px);
+  min-height: clamp(480px, 62vh, 720px);
   background: #ffffff;
   color: #141418 !important;
   border: 2px solid;
@@ -277,8 +278,9 @@ body.bg-floppy {
 /* ---------------------------------------------------------------- the pixel-art floppy box */
 .fbox {
   position: relative;
-  padding: 28px 18px 0;
-  width: calc(var(--disk) + 36px);
+  // 64px top padding reserves room for the top disk lifting 58px on hover so it never overlaps the headline
+  padding: 64px 20px 0;
+  width: calc(var(--disk) + 40px);
 }
 
 // smoky pixel-dithered open lid behind the disks
@@ -286,7 +288,7 @@ body.bg-floppy {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: 8px;
   bottom: 35%;
   border-radius: 0;
   background-color: rgba(48, 54, 64, 0.78);
