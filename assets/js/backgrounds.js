@@ -3215,16 +3215,46 @@ void main(){
     COMMON +
     `
 uniform sampler2D uAlb;uniform sampler2D uMask;uniform sampler2D uGlow;uniform vec2 uAlbSize;uniform float uAlbScale;uniform float uMode;
-uniform vec4 uKA;uniform float uKAa;uniform vec4 uKB;uniform float uKBa;
-float keyK(vec4 r,float a){return 1.+a*min(.15,8./min(r.z,r.w));}
+uniform vec2 uKC;uniform float uKOn;uniform float uKR;
+// how far a key is lifted: full under the pointer, fading out over the radius
+float keyAmt(vec2 lo,vec2 sz){
+  vec2 d=max(max(lo-uKC,uKC-(lo+sz)),0.);
+  float t=1.-clamp(length(d)/uKR,0.,1.);
+  return uKOn*t*t*(3.-2.*t);
+}
 void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);
   float lift,hs;w=hoverWarp(w,lift,hs);
-  if(uMode<.5){
-    // keyboard: the key under the pointer (and the one it just left) pops up
-    bool hit;
-    w=rectWarp(w,uKA,uKAa,keyK(uKA,uKAa),3.,7.,lift,hs,hit);
-    if(!hit)w=rectWarp(w,uKB,uKBa,keyK(uKB,uKBa),3.,7.,lift,hs,hit);
+  if(uMode<.5&&uKOn>.001){
+    // keyboard: every key near the pointer pops up. A grown key can reach over its
+    // neighbours and cast a shadow on them, so look at the keys around this pixel too
+    vec2 best=w;float bl=-1.;
+    float ca[6];float cs[6];
+    for(int n=0;n<6;n++){
+      ca[n]=0.;cs[n]=1.;
+      vec2 o=n==0?vec2(0.):n==1?vec2(-8.,0.):n==2?vec2(8.,0.):n==3?vec2(0.,-8.):n==4?vec2(0.,8.):vec2(-9.,-12.);
+      vec2 lp,sz;vec4 mt;cellInfo(w+o,lp,sz,mt);
+      vec2 lo=w+o-lp;
+      float a=keyAmt(lo,sz);
+      if(a<.001)continue;
+      float k=1.+a*min(.2,11./min(sz.x,sz.y));
+      vec2 c=lo+sz*.5;
+      vec2 q=c+(w-c)/k;
+      vec2 d=abs(q-c)-(sz*.5-3.-7.);
+      if(length(max(d,0.))+min(max(d.x,d.y),0.)-7.<0.){if(a>bl){bl=a;best=q;}continue;}
+      // not on this key: maybe in its shadow
+      vec2 off=vec2(.7,1.)*a*min(9.,.14*min(sz.x,sz.y));
+      vec2 sd=abs(c+(w-off-c)/k-c)-sz*.5;
+      ca[n]=a;cs[n]=1.-smoothstep(-3.,10.,max(sd.x,sd.y));
+    }
+    // keys that stand higher than the one seen here shade it
+    float sh=1.;
+    for(int n=0;n<6;n++){
+      float dh=ca[n]-max(bl,0.);
+      if(dh>0.)sh=min(sh,1.-.6*clamp(dh*2.5,0.,1.)*cs[n]);
+    }
+    if(bl>=0.){w=best;lift=max(lift,bl);}
+    hs*=sh;
   }
   vec2 uv=w*uAlbScale/uAlbSize;
   vec3 col=texture(uAlb,uv).rgb;
@@ -3241,7 +3271,7 @@ void main(){
     vec3 glow=texture(uGlow,uv).rgb;
     col+=glow*(.32*fl)*(1.-m*.7);
   }
-  col*=hs*(1.+.06*lift);
+  col*=hs*(1.+(uMode<.5?.1:.06)*lift);
   outColor=vec4(col*vig(p),1.);
 }`;
 
@@ -3576,8 +3606,15 @@ void main(){
             for (var x = b.c; x < Math.min(pidx.cols, b.c + b.w); x++) at[y * pidx.cols + x] = j;
         });
         resetKeys();
-        keyMap = { at: at, cols: pidx.cols, rows: pidx.rows, gx0: pidx.gx0, gy0: pidx.gy0, u: u, list: list };
-        pickKey(true);
+        keyMap = { at: at, cols: pidx.cols, rows: pidx.rows, gx0: pidx.gx0, gy0: pidx.gy0, u: u, list: list, last: -1 };
+        setTex("uIdx", function () {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pidx.cols * 2, pidx.rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, pidx.data);
+          params(gl.NEAREST, gl.CLAMP_TO_EDGE);
+        });
+        u2("uOrg", pidx.gx0, pidx.gy0);
+        u1("uU", u);
+        u2("uGrid", pidx.cols, pidx.rows);
+        u1("uKR", KEY_R);
       }
       var sc = 0.5;
       var maxTp = gl.getParameter(gl.MAX_TEXTURE_SIZE);
@@ -3715,52 +3752,49 @@ void main(){
   var hov = { el: null, i: -1, amt: 0, target: 0 };
   var worldRects = [];
 
-  // keyboard page: every key reacts to the pointer, with a soft click
+  // keyboard page: every key near the pointer lifts, with a typing click on the key under it
+  var KEY_R = 110;
   var keyMap = null;
-  var keyA = { i: -1, amt: 0, t: 0 },
-    keyB = { i: -1, amt: 0, t: 0 };
+  var kp = { x: 0, y: 0, tx: 0, ty: 0, on: 0, ton: 0 };
   var ptr = { x: -1, y: -1, in: false };
-  function keyScale(r, a) {
-    return 1 + a * Math.min(0.15, 8 / Math.min(r.w, r.h));
+  function plateAmt(r) {
+    var dx = Math.max(r.x - kp.x, kp.x - (r.x + r.w), 0),
+      dy = Math.max(r.y - kp.y, kp.y - (r.y + r.h), 0);
+    var t = 1 - Math.min(1, Math.sqrt(dx * dx + dy * dy) / KEY_R);
+    return kp.on * t * t * (3 - 2 * t);
   }
-  function styleKeySlot(k) {
-    if (!keyMap || k.i < 0) return;
-    var r = keyMap.list[k.i];
-    if (!r || r.slot < 0 || !slotEls[r.slot]) return;
-    var e = slotEls[r.slot];
-    var big = k.amt > 0.001;
-    e.style.transform = big ? "scale(" + keyScale(r, k.amt).toFixed(4) + ")" : "";
-    e.style.zIndex = big ? "3" : "";
+  function stylePlates() {
+    if (!keyMap) return;
+    keyMap.list.forEach(function (r) {
+      if (r.slot < 0 || !slotEls[r.slot]) return;
+      var a = plateAmt(r);
+      var e = slotEls[r.slot];
+      var big = a > 0.001;
+      e.style.transform = big ? "scale(" + (1 + a * Math.min(0.2, 11 / Math.min(r.w, r.h))).toFixed(4) + ")" : "";
+      e.style.zIndex = big ? "3" : "";
+    });
   }
   function resetKeys() {
-    keyA.amt = keyB.amt = 0;
-    styleKeySlot(keyA);
-    styleKeySlot(keyB);
-    keyA = { i: -1, amt: 0, t: 0 };
-    keyB = { i: -1, amt: 0, t: 0 };
+    kp.on = 0;
+    stylePlates();
   }
-  function pickKey(silent) {
+  function pickKey() {
     if (!keyMap) return;
+    kp.tx = ptr.x + window.scrollX;
+    kp.ty = ptr.y + window.scrollY;
+    kp.ton = ptr.in ? 1 : 0;
+    if (kp.on < 0.001) {
+      kp.x = kp.tx;
+      kp.y = kp.ty;
+    }
     var j = -1;
     if (ptr.in) {
-      var c = Math.floor((ptr.x + window.scrollX - keyMap.gx0) / keyMap.u),
-        r = Math.floor((ptr.y + window.scrollY - keyMap.gy0) / keyMap.u);
+      var c = Math.floor((kp.tx - keyMap.gx0) / keyMap.u),
+        r = Math.floor((kp.ty - keyMap.gy0) / keyMap.u);
       if (c >= 0 && r >= 0 && c < keyMap.cols && r < keyMap.rows) j = keyMap.at[r * keyMap.cols + c];
     }
-    if (j === keyA.i) {
-      keyA.t = j < 0 ? 0 : 1;
-      kick();
-      return;
-    }
-    // the old key settles back while the new one rises
-    var back = j >= 0 && j === keyB.i ? keyB : null;
-    if (keyB.i >= 0 && !back) {
-      keyB.amt = 0;
-      styleKeySlot(keyB);
-    }
-    keyB = { i: keyA.i, amt: keyA.amt, t: 0 };
-    keyA = back ? { i: j, amt: back.amt, t: 1 } : { i: j, amt: 0, t: j < 0 ? 0 : 1 };
-    if (j >= 0 && !silent) clack(keyMap.list[j]);
+    if (j !== keyMap.last && j >= 0) clack(keyMap.list[j]);
+    keyMap.last = j;
     kick();
   }
   var audio = null,
@@ -3808,8 +3842,9 @@ void main(){
     }
     var big = r && Math.max(r.cw, r.ch) > 1;
     var v = 0.85 + Math.random() * 0.3;
-    burst(now, 0.012, "highpass", 3800 * v, 0.7, 0.22);
-    burst(now + 0.007 + Math.random() * 0.006, big ? 0.03 : 0.022, "bandpass", (big ? 1300 : 2000) * v, 2.5, big ? 0.2 : 0.15);
+    // the click as first shipped, at 60% of its volume
+    burst(now, 0.012, "highpass", 3800 * v, 0.7, 0.132);
+    burst(now + 0.007 + Math.random() * 0.006, big ? 0.03 : 0.022, "bandpass", (big ? 1300 : 2000) * v, 2.5, big ? 0.12 : 0.09);
   }
   var raf = 0,
     last = 0,
@@ -3827,12 +3862,8 @@ void main(){
     gl.uniform4f(uni.uHov, hr ? hr.x : 0, hr ? hr.y : 0, hr ? hr.w : 0, hr ? hr.h : 0);
     gl.uniform1f(uni.uHovAmt, hr ? hov.amt : 0);
     if (keyMap) {
-      var ka = keyMap.list[keyA.i],
-        kb = keyMap.list[keyB.i];
-      gl.uniform4f(uni.uKA, ka ? ka.x : 0, ka ? ka.y : 0, ka ? ka.w : 1, ka ? ka.h : 1);
-      gl.uniform1f(uni.uKAa, ka ? keyA.amt : 0);
-      gl.uniform4f(uni.uKB, kb ? kb.x : 0, kb ? kb.y : 0, kb ? kb.w : 1, kb ? kb.h : 1);
-      gl.uniform1f(uni.uKBa, kb ? keyB.amt : 0);
+      gl.uniform2f(uni.uKC, kp.x, kp.y);
+      gl.uniform1f(uni.uKOn, kp.on);
     }
     gl.uniform1f(uni.uScrollY, window.scrollY);
     gl.uniform2f(uni.uView, css.w, window.innerHeight);
@@ -3857,15 +3888,19 @@ void main(){
       if (!big && hov.target === 0) hov.el = null;
     }
     if (keyMap) {
-      [keyA, keyB].forEach(function (k) {
-        if (k.i < 0) return;
-        var dk = k.t - k.amt;
-        if (Math.abs(dk) > 0.003) {
-          k.amt += dk * (dk > 0 ? 0.35 : 0.18);
-          moving = true;
-        } else k.amt = k.t;
-        styleKeySlot(k);
-      });
+      // the lifted patch follows the pointer with a little lag and fades in and out
+      var kdx = kp.tx - kp.x,
+        kdy = kp.ty - kp.y,
+        kdo = kp.ton - kp.on;
+      kp.x += kdx * 0.3;
+      kp.y += kdy * 0.3;
+      kp.on += kdo * (kdo > 0 ? 0.25 : 0.12);
+      if (Math.abs(kdx) < 0.3 && Math.abs(kdy) < 0.3 && Math.abs(kdo) < 0.003) {
+        kp.x = kp.tx;
+        kp.y = kp.ty;
+        kp.on = kp.ton;
+      } else moving = true;
+      stylePlates();
     }
     if (kind === "glass" || kind === "amber") {
       m.x += (m.tx - m.x) * 0.14;
@@ -3930,11 +3965,9 @@ void main(){
         var loc = gl.getAttribLocation(prog, "a");
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        ["uCss", "uRes", "uDpr", "uMouse", "uHover", "uTime", "uTop", "uScrollY", "uView", "uHov", "uHovAmt", "uKA", "uKAa", "uKB", "uKBa"].forEach(
-          function (n) {
-            uni[n] = gl.getUniformLocation(prog, n);
-          }
-        );
+        ["uCss", "uRes", "uDpr", "uMouse", "uHover", "uTime", "uTop", "uScrollY", "uView", "uHov", "uHovAmt", "uKC", "uKOn"].forEach(function (n) {
+          uni[n] = gl.getUniformLocation(prog, n);
+        });
       } catch (err) {
         if (window.console) console.warn("backgrounds: WebGL unavailable, showing plain panels", err);
         gl = null;
