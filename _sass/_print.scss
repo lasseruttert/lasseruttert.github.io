@@ -258,6 +258,17 @@ body.bg-print {
   z-index: 3;
 }
 
+.printout.is-printing .printer-top,
+.printout.is-printing .printer-front {
+  animation: printer-chatter 0.09s steps(2) infinite;
+}
+
+@keyframes printer-chatter {
+  50% {
+    transform: translateY(1px);
+  }
+}
+
 // sloped top deck with side louvers and smoked acrylic cover (sits behind the emerging paper)
 .printer-top {
   position: absolute;
@@ -280,6 +291,14 @@ body.bg-print {
   width: 68px;
   margin: 6px 10px;
   background: repeating-linear-gradient(180deg, #6e6754 0 3px, #f4efe0 3px 5px, transparent 5px 8px);
+  background-size: 100% 8px;
+  animation: vent-shimmer 1.6s steps(2) infinite;
+}
+
+@keyframes vent-shimmer {
+  50% {
+    opacity: 0.82;
+  }
 }
 
 // smoked pixel-dithered acrylic lid over the paper slot
@@ -309,7 +328,7 @@ body.bg-print {
   border-bottom: 1px solid rgba(255, 230, 170, 0.55);
 }
 
-// dark throat cavity behind the paper
+// dark throat cavity behind the paper with warm internal carriage lamp glow
 .printer-slot-bg {
   position: absolute;
   left: 12px;
@@ -321,6 +340,24 @@ body.bg-print {
   box-shadow:
     inset 0 4px 0 #070605,
     inset 0 -2px 0 #3a362e;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 55% 90% at 50% 60%, rgba(255, 168, 64, 0.24), transparent 75%);
+    animation: slot-lamp 2.8s steps(4) infinite;
+  }
+}
+
+@keyframes slot-lamp {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 // foreground carriage slot: transparent center so the paper is visible under the print head and rail
@@ -351,9 +388,11 @@ body.bg-print {
   top: 2px;
   width: 26px;
   height: 16px;
-  background:
-    repeating-linear-gradient(180deg, #e6dfc8 0 3px, #5c5646 3px 6px) 5px 0 / 16px 16px no-repeat,
-    #2e2b24;
+  background-color: #2e2b24;
+  background-image: repeating-linear-gradient(180deg, #e6dfc8 0 3px, #5c5646 3px 6px);
+  background-position: 5px 0;
+  background-size: 16px 18px;
+  background-repeat: repeat-y;
   border: 2px solid #000;
   &.left {
     left: 14px;
@@ -363,7 +402,17 @@ body.bg-print {
   }
 }
 
-// pixel-art 24-pin print head carriage with orange warning stripe
+.printout.is-printing .tractor {
+  animation: tractor-spin 0.18s steps(3) infinite;
+}
+
+@keyframes tractor-spin {
+  to {
+    background-position: 5px -6px;
+  }
+}
+
+// pixel-art 24-pin print head carriage with orange warning stripe and status LED
 .printer-head {
   position: absolute;
   left: 0;
@@ -380,6 +429,53 @@ body.bg-print {
     inset 2px 2px 0 #66635b,
     inset -2px -2px 0 #1c1b18;
   will-change: transform;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    bottom: 2px;
+    width: 6px;
+    height: 3px;
+    background: #ff9d2e;
+    box-shadow: 0 0 6px #ff9d2e;
+    animation: head-led 1.1s steps(2) infinite;
+  }
+}
+
+// before scrolling starts, the print head performs an idle self-test patrol along the rail
+.printout:not(.is-going) .printer-head {
+  animation: head-patrol 3.8s steps(16) infinite;
+}
+
+.printout.is-printing .printer-head::after {
+  background: #ff5520;
+  box-shadow:
+    0 0 8px #ff5520,
+    0 0 14px rgba(255, 120, 40, 0.85);
+  animation: head-led 0.12s steps(2) infinite;
+}
+
+@keyframes head-patrol {
+  0%,
+  100% {
+    transform: translateX(52px);
+  }
+  35% {
+    transform: translateX(148px);
+  }
+  50% {
+    transform: translateX(148px);
+  }
+  85% {
+    transform: translateX(52px);
+  }
+}
+
+@keyframes head-led {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 // main front body of the printer
@@ -467,6 +563,19 @@ body.bg-print {
     &.on {
       background: #38ff62;
       box-shadow: 0 0 6px #38ff62;
+      animation: printer-led-pulse 2.2s steps(3) infinite;
+    }
+    &[data-online]:not(.on) {
+      background: #d99b26;
+      box-shadow: 0 0 5px rgba(255, 184, 48, 0.7);
+      animation: printer-standby-blink 1.6s steps(2) infinite;
+    }
+    &[data-online].on {
+      background: #38ff62;
+      box-shadow:
+        0 0 8px #38ff62,
+        0 0 14px rgba(56, 255, 98, 0.75);
+      animation: printer-online-strobe 0.16s steps(2) infinite;
     }
   }
 
@@ -482,6 +591,31 @@ body.bg-print {
   }
 }
 
+@keyframes printer-led-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 5px #38ff62;
+  }
+  50% {
+    box-shadow:
+      0 0 10px #38ff62,
+      0 0 16px rgba(56, 255, 98, 0.7);
+  }
+}
+
+@keyframes printer-standby-blink {
+  50% {
+    background: #3b3220;
+    box-shadow: none;
+  }
+}
+
+@keyframes printer-online-strobe {
+  50% {
+    opacity: 0.55;
+  }
+}
+
 // stepped pixel platen knob on the right side
 .printer-knob {
   position: absolute;
@@ -490,11 +624,23 @@ body.bg-print {
   width: 24px;
   height: 44px;
   border-radius: 0;
-  background: repeating-linear-gradient(180deg, #545149 0 4px, #2b2925 4px 8px);
+  background-color: #2b2925;
+  background-image: repeating-linear-gradient(180deg, #545149 0 4px, #2b2925 4px 8px);
+  background-size: 100% 8px;
   border: 3px solid #12110e;
   box-shadow:
     inset 2px 0 0 #7a756a,
     3px 3px 0 rgba(0, 0, 0, 0.55);
+}
+
+.printout.is-printing .printer-knob {
+  animation: knob-turn 0.2s steps(2) infinite;
+}
+
+@keyframes knob-turn {
+  to {
+    background-position: 0 -8px;
+  }
 }
 
 /* ---------------------------------------------------------------- with JavaScript: lines appear when printed */

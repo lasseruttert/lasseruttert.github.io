@@ -686,6 +686,42 @@ body.bg-desk {
   }
 }
 
+/* ---------------------------------------------------------------- scroll-down badge (same style as printer page) */
+.desk-hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 48px;
+  z-index: 15;
+  margin: 0;
+  pointer-events: none;
+  transition: opacity 0.25s steps(3);
+  animation: desk-hint-bob 1.2s steps(2) infinite;
+
+  span {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #1c1a16;
+    color: #ffdf8e !important;
+    font-family: "Pixelify Sans", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    border: 2px solid #e9c46a;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.65);
+  }
+}
+
+.desk.is-going .desk-hint {
+  opacity: 0;
+}
+
+@keyframes desk-hint-bob {
+  50% {
+    transform: translate(-50%, 4px);
+  }
+}
+
 /* ---------------------------------------------------------------- taskbar */
 .os-taskbar {
   position: absolute;

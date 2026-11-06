@@ -139,6 +139,7 @@
     if (!curEl) {
       if (printed >= lines.length) {
         allPrinted = true;
+        root.classList.remove("is-printing");
         if (online) online.classList.remove("on");
         syncPaper();
         return;
@@ -163,6 +164,7 @@
     }
 
     if (window.scrollY < rowEnd - 4) {
+      root.classList.remove("is-printing");
       if (online) online.classList.remove("on");
       syncPaper();
       return;
@@ -171,6 +173,7 @@
     // feed this single row into the slot and lock the paper there while printing it
     fedPx = Math.max(fedPx, Math.min(window.scrollY, rowEnd));
     busy = true;
+    root.classList.add("is-printing");
     if (online) online.classList.add("on");
     syncPaper();
 

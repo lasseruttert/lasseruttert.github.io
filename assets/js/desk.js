@@ -133,6 +133,7 @@
   }
   function onScroll() {
     if (dead) return;
+    if (window.scrollY > 15) root.classList.add("is-going");
     if (shown >= wanted() && !busy) {
       syncScroll();
       return;
