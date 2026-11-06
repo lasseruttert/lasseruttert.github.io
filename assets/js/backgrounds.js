@@ -3849,6 +3849,7 @@ void main(){
   }
   var lastRing = 0;
   function hoverSound() {
+    if (audio && audio.state === "suspended" && navigator.userActivation && navigator.userActivation.hasBeenActive) audio.resume();
     if (!audio || audio.state !== "running") return;
     var now = audio.currentTime;
     if (now - lastRing < 0.08) return;
@@ -3863,25 +3864,25 @@ void main(){
           [f * 2.32, 0.45, 0.3],
           [f * 4.25, 0.18, 0.14],
         ],
-        0.028
+        0.07
       );
     } else if (kind === "tiles") {
       // a short, dull knock on glazed ceramic
-      var c = 520 * v;
+      var c = 760 * v;
       ring(
         [
           [c, 1, 0.16],
           [c * 2.71, 0.55, 0.09],
           [c * 5.1, 0.25, 0.05],
         ],
-        0.04
+        0.1
       );
       if (!noiseBuf) {
         noiseBuf = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.1), audio.sampleRate);
         var d = noiseBuf.getChannelData(0);
         for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
-      burst(now, 0.008, "bandpass", 3200 * v, 1.2, 0.06);
+      burst(now, 0.008, "bandpass", 3200 * v, 1.2, 0.12);
     }
   }
   function clack(r) {
@@ -4098,8 +4099,10 @@ void main(){
       { passive: true }
     );
     if (kind === "keys" || kind === "amber" || kind === "tiles") {
-      // browsers only allow sound after the visitor has clicked or typed once
-      ["pointerdown", "keydown"].forEach(function (ev) {
+      // browsers only allow sound after the visitor has interacted with the site; try right
+      // away (allowed after clicking through from another page), otherwise on the first click or key
+      unlockAudio();
+      ["pointerdown", "keydown", "touchend"].forEach(function (ev) {
         window.addEventListener(ev, unlockAudio, { passive: true });
       });
     }
