@@ -3,6 +3,9 @@
  ******************************************************************************/
 
 body.bg-floppy {
+  --global-theme-color: #e9c46a;
+  --global-hover-color: #ffdf8e;
+  --global-text-color: #efe8d6;
   // a desk mat under a lamp
   background:
     radial-gradient(ellipse 70% 55% at 45% 40%, rgba(255, 226, 170, 0.1), transparent 70%),

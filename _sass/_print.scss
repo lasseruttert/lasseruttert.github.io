@@ -4,6 +4,9 @@
  ******************************************************************************/
 
 body.bg-print {
+  --global-theme-color: #e9c46a;
+  --global-hover-color: #ffdf8e;
+  --global-text-color: #efe8d6;
   background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255, 220, 160, 0.08), transparent 70%), linear-gradient(180deg, #1c1a17, #121110);
   > footer {
     display: none;
