@@ -2953,7 +2953,7 @@ void cellInfo(vec2 w,out vec2 lp,out vec2 sz,out vec4 meta){
   lp=w-((c-a.xy)*uU+uOrg);
   sz=a.zw*uU;
 }
-uniform vec2 uKC;uniform float uKOn;uniform float uKR;
+uniform vec2 uKC;uniform float uKOn;uniform float uKR;uniform float uKS;
 // how far a block is lifted: full under the pointer, fading out over the radius
 float keyAmt(vec2 lo,vec2 sz){
   vec2 d=max(max(lo-uKC,uKC-(lo+sz)),0.);
@@ -2975,14 +2975,14 @@ void radiusLift(inout vec2 w,inout float lift,inout float hs,float inset,float r
     vec2 lo=w+o-lp;
     float a=keyAmt(lo,sz);
     if(a<.001)continue;
-    float k=1.+a*min(.2,11./min(sz.x,sz.y));
+    float k=1.+a*min(.2,11./min(sz.x,sz.y))*uKS;
     vec2 c=lo+sz*.5;
     vec2 q=c+(w-c)/k;
     float rr=min(rad,min(sz.x,sz.y)*.5-inset);
     vec2 d=abs(q-c)-(sz*.5-inset-rr);
     if(length(max(d,0.))+min(max(d.x,d.y),0.)-rr<0.){if(a>bl){bl=a;best=q;}continue;}
     // not on this block: maybe in its shadow
-    vec2 off=vec2(.65,.6)*a*min(9.,.14*min(sz.x,sz.y));
+    vec2 off=vec2(.65,.6)*a*uKS*min(9.,.14*min(sz.x,sz.y));
     vec2 sd=abs(c+(w-off-c)/k-c)-sz*.5;
     ca[n]=a;cs[n]=1.-smoothstep(-3.,10.,max(sd.x,sd.y));
   }
@@ -2990,7 +2990,7 @@ void radiusLift(inout vec2 w,inout float lift,inout float hs,float inset,float r
   float sh=1.;
   for(int n=0;n<6;n++){
     float dh=ca[n]-max(bl,0.);
-    if(dh>0.)sh=min(sh,1.-.6*clamp(dh*2.5,0.,1.)*cs[n]);
+    if(dh>0.)sh=min(sh,1.-.6*uKS*clamp(dh*2.5,0.,1.)*cs[n]);
   }
   if(bl>=0.){w=best;lift=max(lift,bl);}
   hs*=sh;
@@ -3001,6 +3001,23 @@ void radiusLift(inout vec2 w,inout float lift,inout float hs,float inset,float r
     COMMON +
     `
 uniform sampler2D uFar;uniform sampler2D uNear;uniform vec2 uFol;uniform float uMode;
+// ripples: xy where it started, z start time, w strength; uRipB the origin of its block
+uniform vec4 uRip[8];uniform vec2 uRipB[8];
+float ripples(vec2 w,vec2 blk){
+  float rp=0.;
+  for(int i=0;i<8;i++){
+    vec4 r=uRip[i];
+    if(r.w<=0.)continue;
+    float t=uTime-r.z;
+    if(t<0.||t>2.4)continue;
+    if(distance(blk,uRipB[i])>.5)continue;   // a ripple stays inside its own block
+    float d=length(w-r.xy);
+    float front=t*150.;
+    float env=exp(-t*1.7)*exp(-pow((d-front)/38.,2.))/(1.+d*.012);
+    rp+=r.w*env*sin((d-front)*.24);
+  }
+  return rp;
+}
 float glassH(vec2 w,out float frost,out float plate,out float face,out float tid){
   vec2 lp,sz;vec4 meta;cellInfo(w,lp,sz,meta);
   // amber blocks overlap their neighbours a little: near an edge, the neighbour that
@@ -3056,10 +3073,14 @@ float glassH(vec2 w,out float frost,out float plate,out float face,out float tid
 void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);vec2 pv=w-vec2(0.,uScrollY);
   float lift,hs;w=hoverWarp(w,lift,hs);
-  if(uMode>.5)radiusLift(w,lift,hs,0.,6.,true);
+  radiusLift(w,lift,hs,0.,6.,true);
   float frost,plate,face;
   float tid;
   float h=glassH(w,frost,plate,face,tid);
+  if(uMode<.5&&h>0.){
+    vec2 rlp,rsz;vec4 rmeta;cellInfo(w,rlp,rsz,rmeta);
+    h+=ripples(w,w-rlp);
+  }
   vec3 n=normalize(vec3(-dFdx(h)*uDpr*9.6,dFdy(h)*uDpr*9.6,1.));
   float t=uTime;
   vec2 sway=vec2(sin(w.y*.011+t*.9)+.6*sin(w.y*.027+w.x*.006+t*1.7),.7*cos(w.x*.009+t*.7+w.y*.004))*4.;
@@ -3787,9 +3808,46 @@ void main(){
 
   // keyboard page: every key near the pointer lifts, with a typing click on the key under it
   var KEY_R = 110;
-  var liftOn = kind === "keys" || kind === "amber" || kind === "tiles";
+  var liftOn = kind === "keys" || kind === "amber" || kind === "tiles" || kind === "glass";
   var keyMap = null,
     tileIdx = null;
+  // glass: ripples spread from the pointer through the block it is on
+  var rip = { data: new Float32Array(32), blk: new Float32Array(16), n: 0, key: "", lx: 0, ly: 0 };
+  function blockAt(x, y) {
+    var t = tileIdx;
+    if (!t) return null;
+    var c = Math.floor((x - t.gx0) / t.u),
+      r = Math.floor((y - t.gy0) / t.u);
+    if (c < 0 || r < 0 || c >= t.cols || r >= t.rows) return null;
+    var o = (r * t.cols * 2 + c * 2) * 4;
+    if (!t.data[o + 2]) return null;
+    var bc = c - t.data[o],
+      br = r - t.data[o + 1];
+    return { key: bc + "," + br, x: t.gx0 + bc * t.u, y: t.gy0 + br * t.u };
+  }
+  function addRipple(x, y, b, amt) {
+    var i = rip.n++ % 8;
+    rip.data.set([x, y, (performance.now() - t0) / 1000, amt], i * 4);
+    rip.blk.set([b.x, b.y], i * 2);
+  }
+  function rippleMove(cx, cy) {
+    if (reduceMotion) return;
+    var x = cx + window.scrollX,
+      y = cy + window.scrollY;
+    var b = blockAt(x, y);
+    if (!b) {
+      rip.key = "";
+      return;
+    }
+    if (b.key !== rip.key) {
+      // entering a block: a clear ripple and a chime
+      rip.key = b.key;
+      addRipple(x, y, b, 0.3);
+    } else if (Math.hypot(x - rip.lx, y - rip.ly) > 70) addRipple(x, y, b, 0.16);
+    else return;
+    rip.lx = x;
+    rip.ly = y;
+  }
   // which background tile the pointer is on ("" for none or a content block)
   function tileUnder() {
     var t = tileIdx;
@@ -3980,6 +4038,10 @@ void main(){
       gl.uniform2f(uni.uKC, kp.x, kp.y);
       gl.uniform1f(uni.uKOn, kp.on);
     }
+    if (kind === "glass" && uni.uRip) {
+      gl.uniform4fv(uni.uRip, rip.data);
+      gl.uniform2fv(uni.uRipB, rip.blk);
+    }
     gl.uniform1f(uni.uScrollY, window.scrollY);
     gl.uniform2f(uni.uView, css.w, window.innerHeight);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -4084,7 +4146,10 @@ void main(){
         ["uCss", "uRes", "uDpr", "uMouse", "uHover", "uTime", "uTop", "uScrollY", "uView", "uHov", "uHovAmt", "uKC", "uKOn"].forEach(function (n) {
           uni[n] = gl.getUniformLocation(prog, n);
         });
+        uni.uRip = gl.getUniformLocation(prog, "uRip[0]") || gl.getUniformLocation(prog, "uRip");
+        uni.uRipB = gl.getUniformLocation(prog, "uRipB[0]") || gl.getUniformLocation(prog, "uRipB");
         gl.uniform1f(gl.getUniformLocation(prog, "uKR"), KEY_R);
+        gl.uniform1f(gl.getUniformLocation(prog, "uKS"), kind === "glass" ? 0.45 : 1);
       } catch (err) {
         if (window.console) console.warn("backgrounds: WebGL unavailable, showing plain panels", err);
         gl = null;
@@ -4155,6 +4220,7 @@ void main(){
           if (kind === "keys") return;
         }
         if (kind !== "glass" && kind !== "amber") return;
+        if (kind === "glass" && e.pointerType !== "touch") rippleMove(e.clientX, e.clientY);
         m.tx = e.clientX;
         m.ty = e.clientY;
         m.th = 1;
