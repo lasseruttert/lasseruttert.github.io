@@ -2740,7 +2740,8 @@
       prevBottom = 0;
     var cursor = 0,
       maxRow = 0,
-      rects = [];
+      rects = [],
+      placed = [];
     var minW = Math.max(2, Math.ceil(360 / u));
     slotEls.forEach(function (e, i) {
       var chars = e.textContent.replace(/\s+/g, " ").trim().length;
@@ -2775,8 +2776,14 @@
       if (i > 0 && (grp || prevGrp) && grp !== prevGrp) r = maxRow + (R() < 0.5 ? 1 : 0);
       var c = 0;
       for (var guard = 0; guard < 400; guard++, r++) {
+        // keep reading order: a block that shares rows with earlier blocks goes to their right
+        var minC = i === 0 ? 0 : firstCol;
+        for (var q = 0; q < placed.length; q++) {
+          var pq = placed[q];
+          if (pq.r < r + h && r < pq.r + pq.h) minC = Math.max(minC, pq.c + pq.w);
+        }
         var cands = [];
-        for (var cc = i === 0 ? 0 : firstCol; cc + w <= K; cc++) if (free(cc, r, w, h)) cands.push(cc);
+        for (var cc = minC; cc + w <= K; cc++) if (free(cc, r, w, h)) cands.push(cc);
         if (cands.length) {
           var reach = Math.min(cands.length, i === 0 ? 1 : 3);
           c = cands[Math.floor(Math.pow(R(), 3) * reach)];
@@ -2788,6 +2795,7 @@
         // the first block claims its whole row band, so nothing sits beside it
         for (var x = i === 0 ? 0 : c; x < (i === 0 ? K : c + w); x++) row[x] = 1;
       }
+      placed.push({ c: i === 0 ? 0 : c, r: r, w: i === 0 ? K : w, h: h });
       cursor = r;
       prevBottom = r + h;
       if (i === 0) firstCol = c;
