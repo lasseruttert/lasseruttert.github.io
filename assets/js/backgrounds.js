@@ -3232,7 +3232,7 @@ void main(){
     float ca[6];float cs[6];
     for(int n=0;n<6;n++){
       ca[n]=0.;cs[n]=1.;
-      vec2 o=n==0?vec2(0.):n==1?vec2(-8.,0.):n==2?vec2(8.,0.):n==3?vec2(0.,-8.):n==4?vec2(0.,8.):vec2(-9.,-12.);
+      vec2 o=n==0?vec2(0.):n==1?vec2(-8.,0.):n==2?vec2(8.,0.):n==3?vec2(0.,-8.):n==4?vec2(0.,8.):vec2(-8.,-8.);
       vec2 lp,sz;vec4 mt;cellInfo(w+o,lp,sz,mt);
       vec2 lo=w+o-lp;
       float a=keyAmt(lo,sz);
@@ -3243,7 +3243,7 @@ void main(){
       vec2 d=abs(q-c)-(sz*.5-3.-7.);
       if(length(max(d,0.))+min(max(d.x,d.y),0.)-7.<0.){if(a>bl){bl=a;best=q;}continue;}
       // not on this key: maybe in its shadow
-      vec2 off=vec2(.7,1.)*a*min(9.,.14*min(sz.x,sz.y));
+      vec2 off=vec2(.65,.6)*a*min(9.,.14*min(sz.x,sz.y));
       vec2 sd=abs(c+(w-off-c)/k-c)-sz*.5;
       ca[n]=a;cs[n]=1.-smoothstep(-3.,10.,max(sd.x,sd.y));
     }
