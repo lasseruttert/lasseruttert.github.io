@@ -3776,6 +3776,7 @@ void main(){
     u2("uOrg", idx.gx0, idx.gy0);
     u1("uU", u);
     u2("uGrid", idx.cols, idx.rows);
+    tileIdx = { data: idx.data, cols: idx.cols, rows: idx.rows, gx0: idx.gx0, gy0: idx.gy0, u: u, last: "" };
     ensureWindow();
   }
 
@@ -3787,7 +3788,19 @@ void main(){
   // keyboard page: every key near the pointer lifts, with a typing click on the key under it
   var KEY_R = 110;
   var liftOn = kind === "keys" || kind === "amber" || kind === "tiles";
-  var keyMap = null;
+  var keyMap = null,
+    tileIdx = null;
+  // which background tile the pointer is on ("" for none or a content block)
+  function tileUnder() {
+    var t = tileIdx;
+    if (!t || !ptr.in) return "";
+    var c = Math.floor((kp.tx - t.gx0) / t.u),
+      r = Math.floor((kp.ty - t.gy0) / t.u);
+    if (c < 0 || r < 0 || c >= t.cols || r >= t.rows) return "";
+    var o = (r * t.cols * 2 + c * 2) * 4;
+    if (t.data[o + 4] > 6) return "";
+    return c - t.data[o] + "," + (r - t.data[o + 1]);
+  }
   var kp = { x: 0, y: 0, tx: 0, ty: 0, on: 0, ton: 0 };
   var ptr = { x: -1, y: -1, in: false };
   function plateAmt(r) {
@@ -3821,6 +3834,11 @@ void main(){
       kp.y = kp.ty;
     }
     if (!keyMap) {
+      if (tileIdx && (kind === "amber" || kind === "tiles")) {
+        var tu = tileUnder();
+        if (tu && tu !== tileIdx.last) hoverSound(0.45);
+        tileIdx.last = tu;
+      }
       kick();
       return;
     }
@@ -3887,41 +3905,44 @@ void main(){
     });
   }
   var lastRing = 0;
-  function hoverSound() {
+  function hoverSound(vol) {
+    var small = vol !== undefined;
+    vol = small ? vol : 1;
     if (audio && audio.state === "suspended" && navigator.userActivation && navigator.userActivation.hasBeenActive) audio.resume();
     if (!audio || audio.state !== "running") return;
     var now = audio.currentTime;
-    if (now - lastRing < 0.08) return;
+    if (now - lastRing < (small ? 0.045 : 0.08)) return;
     lastRing = now;
+    var len = small ? 0.5 : 1;
     var v = 0.94 + Math.random() * 0.12;
     if (kind === "amber") {
       // a soft glass tink, ringing a little
-      var f = 1320 * v;
+      var f = (small ? 1900 : 1320) * v;
       ring(
         [
-          [f, 1, 0.55],
-          [f * 2.32, 0.45, 0.3],
-          [f * 4.25, 0.18, 0.14],
+          [f, 1, 0.55 * len],
+          [f * 2.32, 0.45, 0.3 * len],
+          [f * 4.25, 0.18, 0.14 * len],
         ],
-        0.07
+        0.07 * vol
       );
     } else if (kind === "tiles") {
       // a short, dull knock on glazed ceramic
-      var c = 760 * v;
+      var c = (small ? 1050 : 760) * v;
       ring(
         [
-          [c, 1, 0.16],
-          [c * 2.71, 0.55, 0.09],
-          [c * 5.1, 0.25, 0.05],
+          [c, 1, 0.16 * len],
+          [c * 2.71, 0.55, 0.09 * len],
+          [c * 5.1, 0.25, 0.05 * len],
         ],
-        0.1
+        0.1 * vol
       );
       if (!noiseBuf) {
         noiseBuf = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.1), audio.sampleRate);
         var d = noiseBuf.getChannelData(0);
         for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
-      burst(now, 0.008, "bandpass", 3200 * v, 1.2, 0.12);
+      burst(now, 0.008, "bandpass", 3200 * v, 1.2, 0.12 * vol);
     }
   }
   function clack(r) {

@@ -4,6 +4,7 @@ permalink: /machines/
 title: Machines
 description: Content coming soon.
 nav: false
+sitemap: false
 nav_order: 7
 background: retro
 ---

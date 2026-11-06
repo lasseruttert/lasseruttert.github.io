@@ -1,0 +1,39 @@
+---
+permalink: /llms.txt
+layout: null
+sitemap: false
+---
+# {{ site.first_name }} {{ site.last_name }}
+
+> {{ site.description | strip }}
+
+This is the personal site of {{ site.first_name }} {{ site.last_name }}: research, publications, projects and a blog.
+
+## Pages
+
+- [About]({{ site.url }}{{ site.baseurl }}/): an introduction and research interests
+- [Experience]({{ site.url }}{{ site.baseurl }}/experience/): research positions and degrees
+- [Publications]({{ site.url }}{{ site.baseurl }}/publications/): papers
+- [Projects]({{ site.url }}{{ site.baseurl }}/projects/): research code, benchmarks and experiments
+- [Blog]({{ site.url }}{{ site.baseurl }}/blog/)
+
+## Experience
+{% for org in site.data.experience %}{% for role in org.roles %}
+- {{ role.title }}, {{ org.org }} ({{ role.dates }}){% endfor %}{% endfor %}
+
+## Education
+{% for org in site.data.education %}{% for role in org.roles %}
+- {{ role.title }}, {{ org.org }} ({{ role.dates }}){% endfor %}{% endfor %}
+
+## Publications
+{% assign pubs = site.publications | sort: "date" | reverse %}{% for pub in pubs %}
+- [{{ pub.title }}]({{ site.url }}{{ site.baseurl }}{{ pub.url }}): {{ pub.authors }}. {{ pub.venue }}, {{ pub.date_label }}.{% endfor %}
+
+## Projects
+{% assign projects = site.projects | sort: "importance" %}{% for project in projects %}
+- [{{ project.title }}]({{ site.url }}{{ site.baseurl }}{{ project.url }}): {{ project.description }}{% endfor %}
+
+## Elsewhere
+
+- GitHub: https://github.com/{{ site.data.socials.github_username }}
+- LinkedIn: https://www.linkedin.com/in/{{ site.data.socials.linkedin_username }}

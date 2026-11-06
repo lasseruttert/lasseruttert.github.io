@@ -9,12 +9,12 @@ last_name: Ruttert
 contact_note: >
   Do not contact me.
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
-  Graduate research assistant and M.Sc. Computer Science student at the University of Bonn. Interested in AI safety, RL, NLP, and agents.
+  Lasse Ruttert is a graduate research assistant and M.Sc. Computer Science student at the University of Bonn, working on AI safety, reinforcement learning, NLP and LLM agents.
 footer_text: >
   Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
   Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
   Photos from <a href="https://unsplash.com" target="_blank">Unsplash</a>.
-keywords: computer science, reinforcement learning, NLP, agents, bachelor thesis # add your own keywords or leave empty
+keywords: Lasse Ruttert, AI safety, reinforcement learning, NLP, LLM agents, emergent misalignment, University of Bonn, computer science # add your own keywords or leave empty
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: ⚛️ # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
@@ -68,7 +68,7 @@ max_width: 930px
 # -----------------------------------------------------------------------------
 # Display links to the page with a preview object on social media.
 # see https://schema.org/docs/faq.html for more information
-serve_og_meta: false # Include Open Graph meta tags in the HTML head
+serve_og_meta: true # Include Open Graph meta tags in the HTML head
 serve_schema_org: false # Include Schema.org in the HTML head
 og_image: # The site-wide (default for all links) Open Graph preview image
 

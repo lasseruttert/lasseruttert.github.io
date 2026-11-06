@@ -39,6 +39,27 @@
   {% endif %}
 </title>
 <meta name="author" content="{{ author_name }}">
+{% if page.url == '/' %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "{{ author_name }}",
+      "givenName": "{{ site.first_name }}",
+      "familyName": "{{ site.last_name }}",
+      "url": "{{ site.url }}{{ site.baseurl }}/",
+      "description": {{ site.description | strip | jsonify }},
+      "jobTitle": "Graduate Research Assistant",
+      "affiliation": { "@type": "CollegeOrUniversity", "name": "University of Bonn", "url": "https://www.uni-bonn.de/" },
+      "alumniOf": { "@type": "CollegeOrUniversity", "name": "University of Bonn", "url": "https://www.uni-bonn.de/" },
+      "knowsAbout": ["AI safety", "Reinforcement learning", "Natural language processing", "LLM agents", "Emergent misalignment", "Combinatorial optimization"],
+      "sameAs": [
+        "https://github.com/{{ site.data.socials.github_username }}",
+        "https://www.linkedin.com/in/{{ site.data.socials.linkedin_username }}"
+      ]
+    }
+  </script>
+{% endif %}
 <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
 {% if page.keywords or site.keywords %}
   <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}{{ site.keywords }}{% endif %}">
