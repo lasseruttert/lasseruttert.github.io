@@ -10,9 +10,34 @@
 (function () {
   "use strict";
 
+  // pages are switched in place (softnav.js), so an earlier background on this document stops first
+  if (window.__bgTeardown) window.__bgTeardown();
   var canvas = document.getElementById("bg-canvas");
   if (!canvas) return;
   var kind = canvas.getAttribute("data-bg");
+  var offs = [],
+    dead = false;
+  function on(t, ev, fn, o) {
+    t.addEventListener(ev, fn, o);
+    offs.push(function () {
+      t.removeEventListener(ev, fn, o);
+    });
+  }
+  window.__bgTeardown = function () {
+    dead = true;
+    offs.forEach(function (f) {
+      f();
+    });
+    offs = [];
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    if (gl) {
+      var lc = gl.getExtension("WEBGL_lose_context");
+      if (lc) lc.loseContext();
+    }
+    gl = null;
+    window.__bgTeardown = null;
+  };
 
   // ---------------------------------------------------------------- utilities
   function mulberry32(seed) {
@@ -3800,6 +3825,7 @@ void main(){
   var audio = null,
     lastClack = 0;
   function unlockAudio() {
+    if (!audio && window.__bgAudio) audio = window.__bgAudio;
     if (audio) {
       if (audio.state === "suspended") audio.resume();
       return;
@@ -3808,6 +3834,7 @@ void main(){
     if (!AC) return;
     try {
       audio = new AC();
+      window.__bgAudio = audio;
     } catch (err) {
       audio = null;
     }
@@ -3987,6 +4014,7 @@ void main(){
   }
 
   function init() {
+    if (dead) return;
     try {
       gl = canvas.getContext("webgl2", { antialias: false, alpha: false, powerPreference: "low-power" });
     } catch (err) {
@@ -4067,7 +4095,8 @@ void main(){
     canvas.classList.add("is-ready");
     kick();
 
-    window.addEventListener(
+    on(
+      window,
       "scroll",
       function () {
         // move the window and redraw right away, in the same frame as the scroll
@@ -4080,7 +4109,8 @@ void main(){
       },
       { passive: true }
     );
-    window.addEventListener(
+    on(
+      window,
       "pointermove",
       function (e) {
         if (keyMap) {
@@ -4103,23 +4133,25 @@ void main(){
       // away (allowed after clicking through from another page), otherwise on the first click or key
       unlockAudio();
       ["pointerdown", "keydown", "touchend"].forEach(function (ev) {
-        window.addEventListener(ev, unlockAudio, { passive: true });
+        on(window, ev, unlockAudio, { passive: true });
       });
     }
-    document.documentElement.addEventListener("mouseleave", function () {
+    on(document.documentElement, "mouseleave", function () {
       ptr.in = false;
       if (keyMap) pickKey();
       m.th = 0;
       kick();
     });
-    document.addEventListener("visibilitychange", kick);
+    on(document, "visibilitychange", kick);
 
     var timer;
     function soon(fn, ms) {
       clearTimeout(timer);
-      timer = setTimeout(fn, ms);
+      timer = setTimeout(function () {
+        if (!dead) fn();
+      }, ms);
     }
-    window.addEventListener("resize", function () {
+    on(window, "resize", function () {
       soon(function () {
         relayout();
       }, 200);
@@ -4140,11 +4172,17 @@ void main(){
       slotEls.forEach(function (e) {
         ro.observe(e.firstElementChild);
       });
+      offs.push(function () {
+        ro.disconnect();
+      });
     }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+    if (document.fonts && document.fonts.ready)
+      document.fonts.ready.then(function () {
+        if (!dead) relayout();
+      });
   }
 
   // the script sits after the content, so it can start without waiting for the theme's scripts
   if (document.readyState !== "loading" || document.querySelector('[role="main"]')) init();
-  else document.addEventListener("DOMContentLoaded", init);
+  else on(document, "DOMContentLoaded", init);
 })();
