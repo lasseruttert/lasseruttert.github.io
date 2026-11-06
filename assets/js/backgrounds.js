@@ -2953,6 +2953,48 @@ void cellInfo(vec2 w,out vec2 lp,out vec2 sz,out vec4 meta){
   lp=w-((c-a.xy)*uU+uOrg);
   sz=a.zw*uU;
 }
+uniform vec2 uKC;uniform float uKOn;uniform float uKR;
+// how far a block is lifted: full under the pointer, fading out over the radius
+float keyAmt(vec2 lo,vec2 sz){
+  vec2 d=max(max(lo-uKC,uKC-(lo+sz)),0.);
+  float t=1.-clamp(length(d)/uKR,0.,1.);
+  return uKOn*t*t*(3.-2.*t);
+}
+// every block near the pointer pops up. A grown block can reach over its neighbours
+// and cast a shadow on them, so the blocks around this pixel are looked at too.
+// inset/rad: the visible block shape inside its cell; skipPlates leaves content blocks alone
+void radiusLift(inout vec2 w,inout float lift,inout float hs,float inset,float rad,bool skipPlates){
+  if(uKOn<.001)return;
+  vec2 best=w;float bl=-1.;
+  float ca[6];float cs[6];
+  for(int n=0;n<6;n++){
+    ca[n]=0.;cs[n]=1.;
+    vec2 o=n==0?vec2(0.):n==1?vec2(-8.,0.):n==2?vec2(8.,0.):n==3?vec2(0.,-8.):n==4?vec2(0.,8.):vec2(-8.,-8.);
+    vec2 lp,sz;vec4 mt;cellInfo(w+o,lp,sz,mt);
+    if(skipPlates&&mt.x>6.5)continue;
+    vec2 lo=w+o-lp;
+    float a=keyAmt(lo,sz);
+    if(a<.001)continue;
+    float k=1.+a*min(.2,11./min(sz.x,sz.y));
+    vec2 c=lo+sz*.5;
+    vec2 q=c+(w-c)/k;
+    float rr=min(rad,min(sz.x,sz.y)*.5-inset);
+    vec2 d=abs(q-c)-(sz*.5-inset-rr);
+    if(length(max(d,0.))+min(max(d.x,d.y),0.)-rr<0.){if(a>bl){bl=a;best=q;}continue;}
+    // not on this block: maybe in its shadow
+    vec2 off=vec2(.65,.6)*a*min(9.,.14*min(sz.x,sz.y));
+    vec2 sd=abs(c+(w-off-c)/k-c)-sz*.5;
+    ca[n]=a;cs[n]=1.-smoothstep(-3.,10.,max(sd.x,sd.y));
+  }
+  // blocks that stand higher than the one seen here shade it
+  float sh=1.;
+  for(int n=0;n<6;n++){
+    float dh=ca[n]-max(bl,0.);
+    if(dh>0.)sh=min(sh,1.-.6*clamp(dh*2.5,0.,1.)*cs[n]);
+  }
+  if(bl>=0.){w=best;lift=max(lift,bl);}
+  hs*=sh;
+}
 `;
 
   var FS_GLASS =
@@ -3014,6 +3056,7 @@ float glassH(vec2 w,out float frost,out float plate,out float face,out float tid
 void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);vec2 pv=w-vec2(0.,uScrollY);
   float lift,hs;w=hoverWarp(w,lift,hs);
+  if(uMode>.5)radiusLift(w,lift,hs,0.,6.,true);
   float frost,plate,face;
   float tid;
   float h=glassH(w,frost,plate,face,tid);
@@ -3103,6 +3146,7 @@ vec3 design(float id,vec2 uv){
 void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);
   float lift,hs;w=hoverWarp(w,lift,hs);
+  radiusLift(w,lift,hs,uGrout*.5,6.,true);
   vec2 lp,sz;vec4 meta;cellInfo(w,lp,sz,meta);
   float plate=step(6.5,meta.x);float seed=meta.w;
   float g=uGrout;vec2 q=lp-g*.5;vec2 s=sz-g;
@@ -3240,47 +3284,10 @@ void main(){
     COMMON +
     `
 uniform sampler2D uAlb;uniform sampler2D uMask;uniform sampler2D uGlow;uniform vec2 uAlbSize;uniform float uAlbScale;uniform float uMode;
-uniform vec2 uKC;uniform float uKOn;uniform float uKR;
-// how far a key is lifted: full under the pointer, fading out over the radius
-float keyAmt(vec2 lo,vec2 sz){
-  vec2 d=max(max(lo-uKC,uKC-(lo+sz)),0.);
-  float t=1.-clamp(length(d)/uKR,0.,1.);
-  return uKOn*t*t*(3.-2.*t);
-}
 void main(){
   vec2 p=P();vec2 w=p+vec2(0.,uTop);
   float lift,hs;w=hoverWarp(w,lift,hs);
-  if(uMode<.5&&uKOn>.001){
-    // keyboard: every key near the pointer pops up. A grown key can reach over its
-    // neighbours and cast a shadow on them, so look at the keys around this pixel too
-    vec2 best=w;float bl=-1.;
-    float ca[6];float cs[6];
-    for(int n=0;n<6;n++){
-      ca[n]=0.;cs[n]=1.;
-      vec2 o=n==0?vec2(0.):n==1?vec2(-8.,0.):n==2?vec2(8.,0.):n==3?vec2(0.,-8.):n==4?vec2(0.,8.):vec2(-8.,-8.);
-      vec2 lp,sz;vec4 mt;cellInfo(w+o,lp,sz,mt);
-      vec2 lo=w+o-lp;
-      float a=keyAmt(lo,sz);
-      if(a<.001)continue;
-      float k=1.+a*min(.2,11./min(sz.x,sz.y));
-      vec2 c=lo+sz*.5;
-      vec2 q=c+(w-c)/k;
-      vec2 d=abs(q-c)-(sz*.5-3.-7.);
-      if(length(max(d,0.))+min(max(d.x,d.y),0.)-7.<0.){if(a>bl){bl=a;best=q;}continue;}
-      // not on this key: maybe in its shadow
-      vec2 off=vec2(.65,.6)*a*min(9.,.14*min(sz.x,sz.y));
-      vec2 sd=abs(c+(w-off-c)/k-c)-sz*.5;
-      ca[n]=a;cs[n]=1.-smoothstep(-3.,10.,max(sd.x,sd.y));
-    }
-    // keys that stand higher than the one seen here shade it
-    float sh=1.;
-    for(int n=0;n<6;n++){
-      float dh=ca[n]-max(bl,0.);
-      if(dh>0.)sh=min(sh,1.-.6*clamp(dh*2.5,0.,1.)*cs[n]);
-    }
-    if(bl>=0.){w=best;lift=max(lift,bl);}
-    hs*=sh;
-  }
+  if(uMode<.5)radiusLift(w,lift,hs,3.,7.,false);
   vec2 uv=w*uAlbScale/uAlbSize;
   vec3 col=texture(uAlb,uv).rgb;
   if(uMode>.5){
@@ -3779,6 +3786,7 @@ void main(){
 
   // keyboard page: every key near the pointer lifts, with a typing click on the key under it
   var KEY_R = 110;
+  var liftOn = kind === "keys" || kind === "amber" || kind === "tiles";
   var keyMap = null;
   var kp = { x: 0, y: 0, tx: 0, ty: 0, on: 0, ton: 0 };
   var ptr = { x: -1, y: -1, in: false };
@@ -3804,13 +3812,17 @@ void main(){
     stylePlates();
   }
   function pickKey() {
-    if (!keyMap) return;
+    if (!liftOn) return;
     kp.tx = ptr.x + window.scrollX;
     kp.ty = ptr.y + window.scrollY;
     kp.ton = ptr.in ? 1 : 0;
     if (kp.on < 0.001) {
       kp.x = kp.tx;
       kp.y = kp.ty;
+    }
+    if (!keyMap) {
+      kick();
+      return;
     }
     var j = -1;
     if (ptr.in) {
@@ -3943,7 +3955,7 @@ void main(){
     var hr = hov.el && worldRects[hov.i];
     gl.uniform4f(uni.uHov, hr ? hr.x : 0, hr ? hr.y : 0, hr ? hr.w : 0, hr ? hr.h : 0);
     gl.uniform1f(uni.uHovAmt, hr ? hov.amt : 0);
-    if (keyMap) {
+    if (liftOn) {
       gl.uniform2f(uni.uKC, kp.x, kp.y);
       gl.uniform1f(uni.uKOn, kp.on);
     }
@@ -3969,7 +3981,7 @@ void main(){
       hov.el.style.zIndex = big ? "3" : "";
       if (!big && hov.target === 0) hov.el = null;
     }
-    if (keyMap) {
+    if (liftOn) {
       // the lifted patch follows the pointer with a little lag and fades in and out
       var kdx = kp.tx - kp.x,
         kdy = kp.ty - kp.y,
@@ -3988,7 +4000,7 @@ void main(){
       m.x += (m.tx - m.x) * 0.14;
       m.y += (m.ty - m.y) * 0.14;
       m.hover += (m.th - m.hover) * 0.08;
-      moving = Math.abs(m.tx - m.x) > 0.3 || Math.abs(m.ty - m.y) > 0.3 || Math.abs(m.th - m.hover) > 0.005;
+      moving = moving || Math.abs(m.tx - m.x) > 0.3 || Math.abs(m.ty - m.y) > 0.3 || Math.abs(m.th - m.hover) > 0.005;
     }
     var animated = !reduceMotion && (kind === "glass" || kind === "amber" || kind === "retro");
     if (!moving && !scrolled && animated && ts - last < 33) {
@@ -4051,6 +4063,7 @@ void main(){
         ["uCss", "uRes", "uDpr", "uMouse", "uHover", "uTime", "uTop", "uScrollY", "uView", "uHov", "uHovAmt", "uKC", "uKOn"].forEach(function (n) {
           uni[n] = gl.getUniformLocation(prog, n);
         });
+        gl.uniform1f(gl.getUniformLocation(prog, "uKR"), KEY_R);
       } catch (err) {
         if (window.console) console.warn("backgrounds: WebGL unavailable, showing plain panels", err);
         gl = null;
@@ -4101,7 +4114,7 @@ void main(){
       function () {
         // move the window and redraw right away, in the same frame as the scroll
         if (ensureWindow()) draw(performance.now());
-        if (keyMap && ptr.in) pickKey();
+        if (liftOn && ptr.in) pickKey();
         if (kind === "glass") {
           scrolled = true;
           kick();
@@ -4113,12 +4126,12 @@ void main(){
       window,
       "pointermove",
       function (e) {
-        if (keyMap) {
+        if (liftOn) {
           ptr.x = e.clientX;
           ptr.y = e.clientY;
           ptr.in = e.pointerType !== "touch";
           pickKey();
-          return;
+          if (kind === "keys") return;
         }
         if (kind !== "glass" && kind !== "amber") return;
         m.tx = e.clientX;
@@ -4138,7 +4151,7 @@ void main(){
     }
     on(document.documentElement, "mouseleave", function () {
       ptr.in = false;
-      if (keyMap) pickKey();
+      if (liftOn) pickKey();
       m.th = 0;
       kick();
     });
